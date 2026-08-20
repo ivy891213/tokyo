@@ -221,6 +221,20 @@
         </div>
       </div>
 
+      <!-- 行程中的票券與預約整理區 -->
+      <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-2">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-ticket-simple text-emerald-600 text-xs"></i>
+            <h2 class="text-xs font-black text-slate-800 tracking-wider">行程票券與預約總覽</h2>
+          </div>
+          <span class="text-[10px] text-slate-400">自動從每日行程萃取</span>
+        </div>
+        <div id="extracted-tickets-list" class="space-y-1.5 text-xs">
+          <!-- 動態生成 -->
+        </div>
+      </section>
+
       <section class="bg-gradient-to-r from-[#2C4A5A] to-[#1F3542] text-white rounded-3xl p-4 shadow-sm space-y-2">
         <div class="flex justify-between items-center border-b border-white/10 pb-2 cursor-pointer" onclick="toggleTransportDetails()">
           <div>
@@ -525,16 +539,26 @@
       ]}
     ];
 
-    // 確保 checked 預設為 false 避免項目被誤畫刪除線
+    // 包含您指定的完整行前裝備
     let defaultPrepList = [
       { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
-      { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
-      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
+      { id: 2, text: '日幣現金 / 信用卡 / 保險單', checked: false },
+      { id: 3, text: '衣服 / 內衣褲 / 襪子', checked: false },
+      { id: 4, text: '眼鏡', checked: false },
+      { id: 5, text: '化妝品', checked: false },
+      { id: 6, text: '隱形眼鏡', checked: false },
+      { id: 7, text: '眼藥水 / 常備藥品', checked: false },
+      { id: 8, text: '充電線', checked: false },
+      { id: 9, text: '行動電源 (行充)', checked: false },
+      { id: 10, text: '牙刷 / 個人盥洗', checked: false },
+      { id: 11, text: 'Visit Japan Web 入境填寫', checked: false }
     ];
 
     let defaultTicketList = [
       { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
-      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
+      { id: 12, text: '京成成田 Skyaccess 車票', checked: false },
+      { id: 13, text: '高速巴士 (新宿 ➔ 山中湖)', checked: false },
+      { id: 14, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
     ];
 
     let itineraryData = [];
@@ -571,7 +595,7 @@
       // 監聽行前物品
       db.ref('prepList').on('value', (snapshot) => {
         const val = snapshot.val();
-        if (val) {
+        if (val && val.length > 0) {
           prepList = val;
         } else {
           prepList = defaultPrepList;
@@ -584,7 +608,7 @@
       // 監聽門票預約
       db.ref('ticketList').on('value', (snapshot) => {
         const val = snapshot.val();
-        if (val) {
+        if (val && val.length > 0) {
           ticketList = val;
         } else {
           ticketList = defaultTicketList;
@@ -641,6 +665,48 @@
       } else {
         details.classList.add('hidden');
         icon.classList.remove('rotate-180');
+      }
+    }
+
+    // 自動萃取行程中的票券、預約與交通票
+    function extractTicketsFromItinerary() {
+      const container = document.getElementById('extracted-tickets-list');
+      container.innerHTML = '';
+      
+      let foundCount = 0;
+      itineraryData.forEach((dayData) => {
+        if (dayData.items) {
+          dayData.items.forEach((item) => {
+            // 透過關鍵字判定是否為票券/交通/預約項目
+            const keywords = ['票', 'skyaccess', '巴士', '展望台', '迪士尼', 'dpa', '預約'];
+            const targetText = (item.title + ' ' + (item.desc || '')).toLowerCase();
+            const isTicketOrBooking = keywords.some(kw => targetText.includes(kw));
+
+            if (isTicketOrBooking) {
+              foundCount++;
+              const row = document.createElement('div');
+              row.className = 'bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center cursor-pointer transition active:scale-[0.98]';
+              row.onclick = function() {
+                switchMainPage('timeline');
+                scrollToDay(`day-${dayData.day}`);
+              };
+              row.innerHTML = `
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <span class="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">D${dayData.day} • ${item.time}</span>
+                  <span class="font-bold text-slate-800 truncate">${item.title}</span>
+                </div>
+                <div class="text-[10px] text-emerald-600 font-bold flex items-center gap-1 flex-shrink-0">
+                  查看 <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </div>
+              `;
+              container.appendChild(row);
+            }
+          });
+        }
+      });
+
+      if (foundCount === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">目前行程中尚無標記票券項目</p>`;
       }
     }
 
@@ -731,6 +797,7 @@
       });
 
       calculateTransportExpenses();
+      extractTicketsFromItinerary();
     }
 
     function openAddTimelineModal(dayIndex) {
@@ -836,7 +903,6 @@
       container.innerHTML = '';
       prepList.forEach((item) => {
         const row = document.createElement('div');
-        // 修正樣式判斷：checked 為 true 才加上刪除線與灰色背景
         row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
         row.innerHTML = `
           <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="togglePrepItem(${item.id})" class="w-4 h-4 rounded text-amber-500 focus:ring-0 cursor-pointer">
