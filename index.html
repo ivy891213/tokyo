@@ -1,6 +1,39 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="scroll-smooth">
 <head>
+  <!-- 引入 Firebase SDK (請放在 body 結尾前) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // 1. 填入您的 Firebase 設定 (這串是專屬於您的)
+  const firebaseConfig = {
+    apiKey: "你的API_KEY",
+    authDomain: "你的專案.firebaseapp.com",
+    projectId: "tokyo20261128-20261213",
+    storageBucket: "你的專案.appspot.com",
+    messagingSenderId: "你的ID",
+    appId: "你的APP_ID"
+  };
+
+  // 2. 初始化
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 3. 寫入範例函式 (以後按下「新增行程」按鈕就呼叫它)
+  async function addData(desc, cost) {
+    try {
+      await addDoc(collection(db, "trips", "tokyo2026", "expenses"), {
+        desc: desc,
+        cost: cost,
+        timestamp: new Date()
+      });
+      alert("資料已成功存入雲端！");
+    } catch (e) {
+      console.error("錯誤:", e);
+    }
+  }
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TOKYO 16DN | 奕柔 & 楚軒 生日之旅</title>
