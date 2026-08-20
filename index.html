@@ -379,7 +379,7 @@
         </div>
         <div class="flex items-center gap-1.5">
           <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-400 hover:text-slate-700 bg-slate-100 px-2 py-1 rounded-md transition">清除篩選</button>
-          <button onclick="toggleModal(true)" class="text-[10px] font-bold text-white bg-[#008BB0] hover:bg-[#007a9b] px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1">
+          <button onclick="toggleAddBox()" class="text-[10px] font-bold text-white bg-[#008BB0] hover:bg-[#007a9b] px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1">
             <i class="fa-solid fa-plus"></i> 新增地點
           </button>
         </div>
@@ -411,11 +411,54 @@
         </div>
       </div>
 
+      <!-- 內嵌式新增地點面板 (預設隱藏，點擊頂部「新增地點」按鈕展開) -->
+      <div id="inline-add-box" class="hidden border-t border-slate-100 pt-2 space-y-2 text-xs">
+        <div class="font-bold text-[#008BB0] flex items-center gap-1">
+          <i class="fa-solid fa-circle-plus"></i> 新增地點表單
+        </div>
+        <div>
+          <label class="block font-bold text-slate-400 mb-0.5">輸入名稱</label>
+          <input type="text" id="input-name" placeholder="例如：晴空塔" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-400 mb-0.5">輸入 Google Map 連結</label>
+          <input type="text" id="input-link" placeholder="請貼上網址..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-400 mb-0.5">屬性分類</label>
+            <select id="input-type" class="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+              <option value="sightseeing">景點/拍照</option>
+              <option value="food">美食/咖啡</option>
+              <option value="shopping">購物/樂器</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-400 mb-0.5">地區分類</label>
+            <select id="input-area" class="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+              <option value="shibuya">澀谷</option>
+              <option value="asakusa">淺草</option>
+              <option value="shinjuku">新宿</option>
+              <option value="ginza">銀座</option>
+              <option value="ochanomizu">御茶之水</option>
+              <option value="ikebukuro">池袋</option>
+              <option value="fuji">富士山區</option>
+              <option value="kamakura">鐮倉區</option>
+              <option value="other">其他/住宿</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button onclick="toggleAddBox()" class="flex-1 py-1.5 bg-slate-100 text-slate-600 rounded-lg font-bold text-xs">取消</button>
+          <button onclick="saveNewItem()" class="flex-1 py-1.5 bg-[#008BB0] text-white rounded-lg font-bold text-xs shadow-sm">完成</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- 頂部留白，避免內容被固定導覽列遮擋 -->
-  <div class="h-28"></div>
+  <!-- 頂部留白，避免內容被固定導覽列與展開表單遮擋 -->
+  <div class="h-36"></div>
 
   <!-- ==================== 項目列表區 (內容完整保留) ==================== -->
   <div id="container-view-type" class="space-y-4">
@@ -526,58 +569,7 @@
 
   </div>
 
-  <!-- 新增地點的彈出視窗 (Modal) -->
-  <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-        <h3 class="font-black text-sm text-slate-800">新增地圖地點</h3>
-        <button onclick="toggleModal(false)" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-500 mb-1">地點名稱</label>
-          <input type="text" id="input-name" placeholder="例如：晴空塔" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-500 mb-1">Google Maps 連結</label>
-          <input type="text" id="input-link" placeholder="貼上網址..." class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-500 mb-1">屬性分類 (上方列)</label>
-          <select id="input-type" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
-            <option value="sightseeing">景點/拍照</option>
-            <option value="food">美食/咖啡</option>
-            <option value="shopping">購物/樂器</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-500 mb-1">地區分類 (下方列)</label>
-          <select id="input-area" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
-            <option value="shibuya">澀谷</option>
-            <option value="asakusa">淺草</option>
-            <option value="shinjuku">新宿</option>
-            <option value="ginza">銀座</option>
-            <option value="ochanomizu">御茶之水</option>
-            <option value="ikebukuro">池袋</option>
-            <option value="fuji">富士山區</option>
-            <option value="kamakura">鐮倉區</option>
-            <option value="other">其他/住宿</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="flex gap-2 pt-2">
-        <button onclick="toggleModal(false)" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs">取消</button>
-        <button onclick="saveNewItem()" class="flex-1 py-2 bg-[#008BB0] text-white rounded-xl font-bold text-xs shadow-sm">完成新增</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JavaScript 邏輯：單選篩選 + 動態新增並自動分類 -->
+  <!-- JavaScript 邏輯：單選篩選 + 內嵌表單新增並自動分類 -->
   <script>
     const currentFilter = {
         type: null,
@@ -646,9 +638,10 @@
         });
     }
 
-    // 控制彈出視窗開關
-    function toggleModal(show) {
-      document.getElementById('add-modal').classList.toggle('hidden', !show);
+    // 切換內嵌新增表單的展開與收合
+    function toggleAddBox() {
+      const box = document.getElementById('inline-add-box');
+      box.classList.toggle('hidden');
     }
 
     // 儲存新地點並自動歸類
@@ -681,14 +674,15 @@
       // 重新套用當前篩選，確保新項目如果符合條件會立刻顯示
       applyMapFilters();
 
-      // 關閉視窗並清空欄位
-      toggleModal(false);
+      // 收合表單並清空欄位
+      toggleAddBox();
       document.getElementById('input-name').value = '';
       document.getElementById('input-link').value = '';
     }
   </script>
 
 </div>
+
     
     <!-- MORE PAGE -->
     <div id="page-more" class="page-view hidden space-y-4">
