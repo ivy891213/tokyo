@@ -366,40 +366,13 @@
 <!-- MAP PAGE -->
     <div id="page-map" class="page-view hidden space-y-4">
       
-      <!-- 頂部切換按鈕（已釘選在畫面上方 sticky top-0） -->
-      <section class="sticky top-0 z-20 bg-white/95 backdrop-blur-md rounded-b-3xl p-3 shadow-sm border-b border-slate-100">
+      <!-- 頂部切換按鈕（仿照每日行程風格） -->
+      <section class="bg-white rounded-3xl p-3 shadow-sm border border-slate-100">
         <div class="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-xs">
           <button onclick="filterMap('all', this)" class="map-tab-btn active px-3.5 py-1.5 rounded-full font-bold whitespace-nowrap transition bg-[#008BB0] text-white shadow-sm">全部 (81)</button>
           <button onclick="filterMap('sightseeing', this)" class="map-tab-btn px-3.5 py-1.5 rounded-full font-medium whitespace-nowrap transition bg-slate-100 text-slate-600 hover:bg-slate-200">景點/拍照</button>
           <button onclick="filterMap('food', this)" class="map-tab-btn px-3.5 py-1.5 rounded-full font-medium whitespace-nowrap transition bg-slate-100 text-slate-600 hover:bg-slate-200">美食/咖啡</button>
           <button onclick="filterMap('shopping', this)" class="map-tab-btn px-3.5 py-1.5 rounded-full font-medium whitespace-nowrap transition bg-slate-100 text-slate-600 hover:bg-slate-200">購物/樂器</button>
-        </div>
-      </section>
-
-      <!-- 內嵌互動地圖與定位區塊 -->
-      <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="space-y-0.5">
-            <div class="flex items-center gap-1.5 font-black text-xs text-slate-800">
-              <i class="fa-solid fa-location-crosshairs text-[#008BB0] animate-pulse"></i>
-              <span>即時周遭地圖</span>
-            </div>
-            <p id="location-status" class="text-[11px] text-slate-400">點擊右側按鈕將地圖中心移動到你目前位置</p>
-          </div>
-          <button onclick="getEmbeddedLocation()" class="bg-[#008BB0] text-white px-3.5 py-2 rounded-2xl font-bold text-xs shadow-sm hover:bg-[#007393] transition whitespace-nowrap flex items-center gap-1">
-            <i class="fa-solid fa-compass"></i>
-            <span>定位並更新地圖</span>
-          </button>
-        </div>
-
-        <!-- 內嵌 iframe 地圖 -->
-        <div class="w-full h-64 rounded-2xl overflow-hidden border border-slate-100 relative bg-slate-50">
-          <iframe 
-            id="google-map-iframe"
-            class="w-full h-full border-0"
-            loading="lazy"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d103706.74581290333!2d139.6917!3d35.6895!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x605d1b87f02e57e7%3A0x2e01618b22571b89!2zVG9reW8sIEVzdGFkaW8sIEphcMOgbg!5e0!3m2!1szh-TW!2stw!4v1650000000000!5m2!1szh-TW!2stw">
-          </iframe>
         </div>
       </section>
 
@@ -831,9 +804,10 @@
 
     </div>
 
-    <!-- JavaScript 邏輯 -->
+    <!-- 地圖分類篩選 JavaScript 函式（請確保放在 <script> 區塊內） -->
     <script>
       function filterMap(category, btn) {
+        // 切換按鈕樣式
         document.querySelectorAll('.map-tab-btn').forEach(b => {
           b.classList.remove('bg-[#008BB0]', 'text-white', 'shadow-sm');
           b.classList.add('bg-slate-100', 'text-slate-600');
@@ -841,6 +815,7 @@
         btn.classList.remove('bg-slate-100', 'text-slate-600');
         btn.classList.add('bg-[#008BB0]', 'text-white', 'shadow-sm');
 
+        // 切換分類區塊顯示
         document.querySelectorAll('.map-category-section').forEach(section => {
           if (category === 'all' || section.getAttribute('data-category') === category) {
             section.style.display = 'block';
@@ -848,46 +823,6 @@
             section.style.display = 'none';
           }
         });
-      }
-
-      function getEmbeddedLocation() {
-        const statusEl = document.getElementById('location-status');
-        const iframeEl = document.getElementById('google-map-iframe');
-
-        if (!navigator.geolocation) {
-          statusEl.textContent = '你的瀏覽器不支援定位功能';
-          return;
-        }
-
-        statusEl.textContent = '正在取得你的 GPS 位置以更新地圖...';
-        
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            iframeEl.src = `https://maps.google.com/maps?q=${lat},${lng}&hl=zh-TW&z=15&output=embed`;
-            
-            statusEl.innerHTML = `已成功定位並更新地圖！ <span class="text-emerald-600 font-bold">(${lat.toFixed(4)}, ${lng.toFixed(4)})</span>`;
-          },
-          (error) => {
-            switch(error.code) {
-              case error.PERMISSION_DENIED:
-                statusEl.textContent = '定位失敗：你拒絕了定位權限';
-                break;
-              case error.POSITION_UNAVAILABLE:
-                statusEl.textContent = '定位失敗：無法取得位置資訊';
-                break;
-              case error.TIMEOUT:
-                statusEl.textContent = '定位失敗：請求超時';
-                break;
-              default:
-                statusEl.textContent = '定位失敗：發生未知錯誤';
-                break;
-            }
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
       }
     </script>
     
