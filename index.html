@@ -7,6 +7,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <style>
     body { font-family: 'Noto Sans TC', sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -20,9 +25,12 @@
       <span class="w-2.5 h-2.5 rounded-full bg-[#2C4A5A]"></span>
       <span class="tracking-wider text-slate-800 font-bold text-xs">TOKYO 16DN</span>
     </div>
-    <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-      <i class="fa-solid fa-cake-candles text-amber-500 mr-1"></i> 生日之旅
-    </span>
+    <div class="flex items-center gap-2">
+      <span id="sync-status" class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-cloud text-slate-300 mr-1"></i>連線中...</span>
+      <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+        <i class="fa-solid fa-cake-candles text-amber-500 mr-1"></i> 生日之旅
+      </span>
+    </div>
   </header>
 
   <main class="p-4 space-y-4">
@@ -467,8 +475,22 @@
   </nav>
 
   <script>
-    // 預設行程數據
-    let itineraryData = [
+    // Firebase 初始化設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
+      authDomain: "tokyo20261128-20261213.firebaseapp.com",
+      databaseURL: "https://tokyo20261128-20261213-default-rtdb.firebaseio.com",
+      projectId: "tokyo20261128-20261213",
+      storageBucket: "tokyo20261128-20261213.appspot.com",
+      messagingSenderId: "389282381282",
+      appId: "1:389282381282:web:tokyo20261128sampleid"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 預設資料結構
+    let defaultItinerary = [
       { day: 1, date: '11.28 SAT', title: '抵達東京 ➔ 晴空塔 ➔ 澀谷 SKY', items: [
         { time: '10:35', title: '抵達成田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
         { time: '11:30', title: '熙樂苑 KIRAKUEN WAGYU 午餐', desc: '晴空塔採買：3F Uniqlo, POP MART, Dr.Martens, JUMP', cost: 0 },
@@ -503,291 +525,223 @@
       ]}
     ];
 
-    let prepList = [
-      { text: '護照 (效期需半年以上)', done: true },
-      { text: '日幣現金 / 信用卡', done: true },
-      { text: '網卡 / eSIM', done: false },
-      { text: '個人常備藥品', done: false }
+    let defaultPrepList = [
+      { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
+      { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
+      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
     ];
 
-    let ticketList = [
-      { text: '台灣虎航機票 (已訂妥)', done: true },
-      { text: '澀谷 SKY 門票預約', done: false },
-      { text: '東京迪士尼海洋門票', done: false },
-      { text: '山中湖高速巴士車票', done: false }
+    let defaultTicketList = [
+      { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
+      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
     ];
 
+    let itineraryData = [];
+    let prepList = [];
+    let ticketList = [];
     let expenses = [];
 
-    // 頁面切換主邏輯
-    function switchMainPage(pageId) {
-      document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`page-${pageId}`).classList.remove('hidden');
+    let currentModalDayIndex = null;
+    let currentStep = 1;
 
-      document.querySelectorAll('.main-nav-btn').forEach(btn => {
-        btn.classList.remove('text-[#2C4A5A]', 'text-slate-700');
-        btn.classList.add('text-slate-400');
+    window.onload = function() {
+      setCurrentDateTimeInput();
+      initFirebaseSync();
+    };
+
+    // Firebase 數據即時同步監聽
+    function initFirebaseSync() {
+      const statusElem = document.getElementById('sync-status');
+
+      // 監聽行程
+      db.ref('itinerary').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          itineraryData = val;
+        } else {
+          itineraryData = defaultPrepList ? defaultItinerary : [];
+          db.ref('itinerary').set(defaultItinerary);
+        }
+        renderTimeline();
+      }, (error) => {
+        statusElem.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i>離線模式`;
       });
 
-      const activeBtn = document.getElementById(`nav-btn-${pageId}`);
-      if (activeBtn) {
-        activeBtn.classList.remove('text-slate-400');
-        activeBtn.classList.add('text-[#2C4A5A]');
-      }
-      window.scrollTo(0, 0);
+      // 監聽行前物品
+      db.ref('prepList').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          prepList = val;
+        } else {
+          prepList = defaultPrepList;
+          db.ref('prepList').set(defaultPrepList);
+        }
+        renderPrepList();
+        updateAllProgressUI();
+      });
+
+      // 監聽門票預約
+      db.ref('ticketList').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          ticketList = val;
+        } else {
+          ticketList = defaultTicketList;
+          db.ref('ticketList').set(defaultTicketList);
+        }
+        renderTicketList();
+        updateAllProgressUI();
+      });
+
+      // 監聽記帳資料
+      db.ref('expenses').on('value', (snapshot) => {
+        const val = snapshot.val();
+        expenses = val ? val : [];
+        updateBudgetUI();
+        statusElem.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-emerald-500 mr-1"></i>雲端同步中`;
+      });
     }
 
-    // 初始化渲染
-    window.addEventListener('DOMContentLoaded', () => {
-      renderTimeline();
-      renderPrepList();
-      renderTicketList();
-      updateProgress();
-    });
+    function saveDataToFirebase(path, data) {
+      db.ref(path).set(data);
+    }
 
-    function renderTimeline() {
-      const container = document.getElementById('timeline-container');
-      const transportList = document.getElementById('transport-items-list');
-      container.innerHTML = '';
-      transportList.innerHTML = '';
-      let totalTransport = 0;
+    function setCurrentDateTimeInput() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('expense-time').value = now.toISOString().slice(0, 16);
+    }
 
-      itineraryDataforEach = itineraryData.forEach(dayObj => {
-        let dayTransport = 0;
-        let itemsHTML = '';
+    function switchMainPage(pageId) {
+      document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+      document.getElementById('page-' + pageId).classList.remove('hidden');
 
-        dayObj.items.forEach(item => {
-          if (item.cost > 0) {
-            dayTransport += item.cost;
-            totalTransport += item.cost;
-            transportList.innerHTML += `
-              <div onclick="scrollToDay('day-${dayObj.day}')" class="bg-white/10 hover:bg-white/20 p-2 rounded-xl flex justify-between items-center cursor-pointer transition">
-                <span>D${dayObj.day} (${dayObj.date.split(' ')[0]}) - ${item.title}</span>
-                <span class="font-bold text-amber-300">¥${item.cost.toLocaleString()}</span>
-              </div>`;
-          }
-          itemsHTML += `
-            <div class="bg-[#F8FAFC] border border-slate-100 p-3 rounded-2xl space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-xs font-black text-[#008BB0]"><i class="fa-regular fa-clock mr-1"></i>${item.time}</span>
-                ${item.cost > 0 ? `<span class="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-md">交通 ¥${item.cost.toLocaleString()}</span>` : ''}
-              </div>
-              <h4 class="text-xs font-bold text-slate-800">${item.title}</h4>
-              ${item.desc ? `<p class="text-[10px] text-slate-500">${item.desc}</p>` : ''}
-            </div>`;
-        });
-
-        if (dayObj.items.length === 0) {
-          itemsHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">本日尚無排定行程，自由活動或隨興探索</p>`;
-        }
-
-        container.innerHTML += `
-          <div id="day-${dayObj.day}" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-              <div class="flex items-center gap-2">
-                <span class="bg-[#2C4A5A] text-white text-xs font-black px-2.5 py-1 rounded-xl">D${dayObj.day}</span>
-                <div>
-                  <h3 class="font-black text-xs text-slate-800">${dayObj.title}</h3>
-                  <p class="text-[10px] text-slate-400">${dayObj.date}</p>
-                </div>
-              </div>
-              <button onclick="openItemModal(${dayObj.day})" class="text-xs bg-[#008BB0]/10 text-[#008BB0] hover:bg-[#008BB0] hover:text-white font-bold px-2.5 py-1 rounded-xl transition">+ 新增行程</button>
-            </div>
-            <div class="space-y-2">${itemsHTML}</div>
-          </div>`;
+      document.querySelectorAll('.main-nav-btn').forEach(btn => {
+        btn.classList.remove('text-[#2C4A5A]');
+        btn.classList.add('text-slate-400');
       });
+      document.getElementById('nav-btn-' + pageId).classList.replace('text-slate-400', 'text-[#2C4A5A]');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-      document.getElementById('timeline-transport-total').innerText = totalTransport.toLocaleString();
+    function scrollToDay(elementId) {
+      const target = document.getElementById(elementId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
     function toggleTransportDetails() {
       const details = document.getElementById('transport-details-container');
       const icon = document.getElementById('transport-toggle-icon');
-      details.classList.toggle('hidden');
-      icon.classList.toggle('rotate-180');
+      if (details.classList.contains('hidden')) {
+        details.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+      } else {
+        details.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+      }
     }
 
-    function scrollToDay(dayId) {
-      switchMainPage('timeline');
-      setTimeout(() => {
-        const el = document.getElementById(dayId);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function calculateTransportExpenses() {
+      let totalCost = 0;
+      const listContainer = document.getElementById('transport-items-list');
+      listContainer.innerHTML = '';
+
+      itineraryData.forEach((dayData) => {
+        if (dayData.items) {
+          dayData.items.forEach((item) => {
+            if (item.cost && item.cost > 0) {
+              totalCost += item.cost;
+
+              const itemRow = document.createElement('div');
+              itemRow.className = 'bg-white/10 hover:bg-white/20 p-2 rounded-xl flex justify-between items-center cursor-pointer transition active:scale-[0.98]';
+              itemRow.onclick = function() {
+                switchMainPage('timeline');
+                scrollToDay(`day-${dayData.day}`);
+              };
+
+              itemRow.innerHTML = `
+                <div class="flex items-center gap-1.5 overflow-hidden">
+                  <span class="bg-amber-400/20 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded">D${dayData.day}</span>
+                  <span class="font-bold text-white text-[11px] truncate">${item.title}</span>
+                </div>
+                <div class="text-right flex items-center gap-1.5">
+                  <span class="font-black text-amber-300 text-xs">¥${item.cost.toLocaleString()}</span>
+                  <i class="fa-solid fa-arrow-right text-[9px] text-slate-300"></i>
+                </div>
+              `;
+              listContainer.appendChild(itemRow);
+            }
+          });
         }
-      }, 100);
-    }
-
-    // 準備清單與進度條
-    function renderPrepList() {
-      const container = document.getElementById('prep-list-container');
-      container.innerHTML = '';
-      let doneCount = 0;
-      prepList.forEach((item, index) => {
-        if (item.done) doneCount++;
-        container.innerHTML += `
-          <div class="flex items-center justify-between bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100">
-            <label class="flex items-center gap-2 cursor-pointer flex-1">
-              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="togglePrep(${index})" class="rounded text-[#008BB0] focus:ring-0">
-              <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${item.text}</span>
-            </label>
-            <button onclick="deletePrep(${index})" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
-          </div>`;
       });
-      document.getElementById('more-prep-count').innerText = `${doneCount} / ${prepList.length} 已完成`;
-      updateProgress();
+
+      document.getElementById('timeline-transport-total').innerText = totalCost.toLocaleString();
     }
 
-    function addPrepItem() {
-      const input = document.getElementById('new-prep-input');
-      if (!input.value.trim()) return;
-      prepList.push({ text: input.value.trim(), done: false });
-      input.value = '';
-      renderPrepList();
-    }
-
-    function togglePrep(index) {
-      prepList[index].done = !prepList[index].done;
-      renderPrepList();
-    }
-
-    function deletePrep(index) {
-      prepList.splice(index, 1);
-      renderPrepList();
-    }
-
-    function renderTicketList() {
-      const container = document.getElementById('ticket-list-container');
+    function renderTimeline() {
+      const container = document.getElementById('timeline-container');
       container.innerHTML = '';
-      let doneCount = 0;
-      ticketList.forEach((item, index) => {
-        if (item.done) doneCount++;
-        container.innerHTML += `
-          <div class="flex items-center justify-between bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100">
-            <label class="flex items-center gap-2 cursor-pointer flex-1">
-              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTicket(${index})" class="rounded text-emerald-500 focus:ring-0">
-              <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${item.text}</span>
-            </label>
-            <button onclick="deleteTicket(${index})" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
-          </div>`;
+
+      itineraryData.forEach((d, dayIndex) => {
+        const card = document.createElement('div');
+        card.id = `day-${d.day}`;
+        card.className = 'scroll-mt-28 bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3';
+        
+        let itemsHTML = '';
+        if (!d.items || d.items.length === 0) {
+          itemsHTML = `<p class="text-xs text-slate-400 italic py-1"><i class="fa-solid fa-pen-to-square mr-1"></i> 尚未安排行程...</p>`;
+        } else {
+          d.items.forEach((item, itemIndex) => {
+            itemsHTML += `
+              <div class="flex gap-2 items-start group">
+                <span class="font-bold text-slate-400 w-10 pt-0.5 text-xs">${item.time}</span>
+                <div class="flex-1 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-100 space-y-1 relative">
+                  <div class="flex justify-between items-start">
+                    <p class="font-bold text-slate-800 text-xs">${item.title}</p>
+                    <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" class="text-rose-400 hover:text-rose-600 text-[10px] pl-2">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                  ${item.desc ? `<p class="text-[10px] text-slate-500">${item.desc}</p>` : ''}
+                  ${item.cost ? `<span class="inline-block bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-200/60 mt-1"><i class="fa-solid fa-train text-[8px] mr-1"></i>交通車資 ¥${item.cost}</span>` : ''}
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        card.innerHTML = `
+          <div class="border-b pb-2 flex justify-between items-center">
+            <div>
+              <p class="text-[10px] font-bold text-[#008BB0]">DAY ${d.day < 10 ? '0' + d.day : d.day} • ${d.date}</p>
+              <h3 class="text-xs font-black text-slate-800">${d.title}</h3>
+            </div>
+            <button onclick="openAddTimelineModal(${dayIndex})" class="text-[10px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-xl transition">
+              <i class="fa-solid fa-plus mr-0.5"></i> 新增行程
+            </button>
+          </div>
+          <div class="space-y-2">
+            ${itemsHTML}
+          </div>
+        `;
+        container.appendChild(card);
       });
-      document.getElementById('more-ticket-count').innerText = `${doneCount} / ${ticketList.length} 已完成`;
-      updateProgress();
+
+      calculateTransportExpenses();
     }
 
-    function addTicketItem() {
-      const input = document.getElementById('new-ticket-input');
-      if (!input.value.trim()) return;
-      ticketList.push({ text: input.value.trim(), done: false });
-      input.value = '';
-      renderTicketList();
-    }
-
-    function toggleTicket(index) {
-      ticketList[index].done = !ticketList[index].done;
-      renderTicketList();
-    }
-
-    function deleteTicket(index) {
-      ticketList.splice(index, 1);
-      renderTicketList();
-    }
-
-    function updateProgress() {
-      const prepDone = prepList.filter(i => i.done).length;
-      const prepTotal = prepList.length || 1;
-      const prepPercent = Math.round((prepDone / prepTotal) * 100);
-      document.getElementById('home-prep-text').innerText = `${prepDone} / ${prepTotal}`;
-      document.getElementById('home-prep-bar').style.width = `${prepPercent}%`;
-
-      const ticketDone = ticketList.filter(i => i.done).length;
-      const ticketTotal = ticketList.length || 1;
-      const ticketPercent = Math.round((ticketDone / ticketTotal) * 100);
-      document.getElementById('home-ticket-text').innerText = `${ticketDone} / ${ticketTotal}`;
-      document.getElementById('home-ticket-bar').style.width = `${ticketPercent}%`;
-    }
-
-    // 記帳與智慧分帳
-    function addExpense() {
-      const payer = document.getElementById('expense-payer').value;
-      const category = document.getElementById('expense-cat').value;
-      const amount = parseFloat(document.getElementById('expense-amount').value);
-      const note = document.getElementById('expense-note').value.trim() || '一般消費';
-      const time = document.getElementById('expense-time').value || new Date().toLocaleString();
-
-      if (!amount || isNaN(amount)) {
-        alert('請輸入有效金額！');
-        return;
-      }
-
-      expenses.push({ payer, category, amount, note, time });
-      document.getElementById('expense-amount').value = '';
-      document.getElementById('expense-note').value = '';
-      renderExpenses();
-    }
-
-    function renderExpenses() {
-      const container = document.getElementById('expense-list');
-      container.innerHTML = '';
-      let total = 0;
-      let yirouTotal = 0;
-      let chuxuanTotal = 0;
-
-      if (expenses.length === 0) {
-        container.innerHTML = `<p class="text-center py-4 text-slate-400">尚無支出紀錄</p>`;
-      } else {
-        expenses.forEach((exp, index) => {
-          total += exp.amount;
-          if (exp.payer === '奕柔') yirouTotal += exp.amount;
-          if (exp.payer === '楚軒') chuxuanTotal += exp.amount;
-
-          container.innerHTML += `
-            <div class="bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100 flex justify-between items-center">
-              <div>
-                <p class="font-bold text-slate-800">${exp.note} <span class="text-[10px] text-slate-400 font-normal">(${exp.category})</span></p>
-                <p class="text-[10px] text-slate-400">${exp.payer}支付 • ${exp.time}</p>
-              </div>
-              <div class="text-right">
-                <p class="font-black text-slate-800">¥${exp.amount.toLocaleString()}</p>
-                <button onclick="deleteExpense(${index})" class="text-[10px] text-rose-500 hover:underline">刪除</button>
-              </div>
-            </div>`;
-        });
-      }
-
-      document.getElementById('total-expense').innerText = total.toLocaleString();
-      document.getElementById('payer-yirou').innerText = yirouTotal.toLocaleString();
-      document.getElementById('payer-chuxuan').innerText = chuxuanTotal.toLocaleString();
-
-      const diff = yirouTotal - chuxuanTotal;
-      const splitResult = document.getElementById('split-result');
-      if (Math.abs(diff) < 1) {
-        splitResult.innerText = '目前金額平衡，互不欠款';
-      } else if (diff > 0) {
-        splitResult.innerText = `楚軒 需支付給 奕柔 ¥${Math.round(diff / 2).toLocaleString()}`;
-      } else {
-        splitResult.innerText = `奕柔 需支付給 楚軒 ¥${Math.round(Math.abs(diff) / 2).toLocaleString()}`;
-      }
-    }
-
-    function deleteExpense(index) {
-      expenses.splice(index, 1);
-      renderExpenses();
-    }
-
-    // Modal 新增行程多步驟精靈
-    let currentModalDay = null;
-    let modalStep = 1;
-    let modalData = { time: '', title: '', desc: '', cost: 0 };
-
-    function openItemModal(dayNum) {
-      currentModalDay = dayNum;
-      modalStep = 1;
-      modalData = { time: '', title: '', desc: '', cost: 0 };
-      document.getElementById('input-step-time').value = '';
+    function openAddTimelineModal(dayIndex) {
+      currentModalDayIndex = dayIndex;
+      currentStep = 1;
+      
+      document.getElementById('input-step-time').value = '12:00';
       document.getElementById('input-step-title').value = '';
       document.getElementById('input-step-desc').value = '';
-      document.getElementById('input-step-cost').value = '';
-      updateModalView();
+      document.getElementById('input-step-cost').value = '0';
+
+      updateModalUI();
       document.getElementById('item-modal').classList.remove('hidden');
     }
 
@@ -795,57 +749,271 @@
       document.getElementById('item-modal').classList.add('hidden');
     }
 
-    function modalNextStep() {
-      if (modalStep === 1) {
-        const val = document.getElementById('input-step-time').value.trim();
-        if (!val) { alert('請輸入時間'); return; }
-        modalData.time = val;
-        modalStep = 2;
-      } else if (modalStep === 2) {
-        const val = document.getElementById('input-step-title').value.trim();
-        if (!val) { alert('請輸入行程名稱'); return; }
-        modalData.title = val;
-        modalStep = 3;
-      } else if (modalStep === 3) {
-        modalData.desc = document.getElementById('input-step-desc').value.trim();
-        modalStep = 4;
-      } else if (modalStep === 4) {
-        const costVal = parseFloat(document.getElementById('input-step-cost').value);
-        modalData.cost = isNaN(costVal) ? 0 : costVal;
+    function updateModalUI() {
+      const titles = [
+        '請輸入行程時間',
+        '請輸入行程名稱',
+        '請輸入詳細備註 (選填)',
+        '請輸入交通費金額 (日圓)'
+      ];
 
-        // 寫入當日行程
-        const targetDay = itineraryData.find(d => d.day === currentModalDay);
-        if (targetDay) {
-          targetDay.items.push(modalData);
-          renderTimeline();
+      document.getElementById('modal-step-tag').innerText = `Step ${currentStep} / 4`;
+      document.getElementById('modal-step-title').innerText = titles[currentStep - 1];
+
+      for (let i = 1; i <= 4; i++) {
+        const stepElem = document.getElementById(`modal-step-${i}`);
+        if (i === currentStep) {
+          stepElem.classList.remove('hidden');
+        } else {
+          stepElem.classList.add('hidden');
         }
+      }
+
+      const btnNext = document.getElementById('modal-btn-next');
+      const btnPrev = document.getElementById('modal-btn-prev');
+
+      if (currentStep === 1) {
+        btnPrev.innerText = '取消';
+        btnNext.innerText = '下一步';
+      } else if (currentStep === 4) {
+        btnPrev.innerText = '上一步';
+        btnNext.innerText = '確定';
+      } else {
+        btnPrev.innerText = '上一步';
+        btnNext.innerText = '下一步';
+      }
+    }
+
+    function modalNextStep() {
+      if (currentStep === 1) {
+        const time = document.getElementById('input-step-time').value.trim();
+        if (!time) return alert("請輸入時間！");
+        currentStep = 2;
+      } else if (currentStep === 2) {
+        const title = document.getElementById('input-step-title').value.trim();
+        if (!title) return alert("請輸入行程名稱！");
+        currentStep = 3;
+      } else if (currentStep === 3) {
+        currentStep = 4;
+      } else if (currentStep === 4) {
+        const time = document.getElementById('input-step-time').value.trim();
+        const title = document.getElementById('input-step-title').value.trim();
+        const desc = document.getElementById('input-step-desc').value.trim();
+        const costInput = document.getElementById('input-step-cost').value;
+        const cost = parseInt(costInput) || 0;
+
+        if (!itineraryData[currentModalDayIndex].items) {
+          itineraryData[currentModalDayIndex].items = [];
+        }
+        itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
+        
+        saveDataToFirebase('itinerary', itineraryData);
         closeItemModal();
         return;
       }
-      updateModalView();
+      updateModalUI();
     }
 
     function modalPrevStep() {
-      if (modalStep > 1) {
-        modalStep--;
-        updateModalView();
-      } else {
+      if (currentStep === 1) {
         closeItemModal();
+      } else {
+        currentStep--;
+        updateModalUI();
       }
     }
 
-    function updateModalView() {
-      for (let i = 1; i <= 4; i++) {
-        document.getElementById(`modal-step-${i}`).classList.add('hidden');
+    function deleteTimelineItem(dayIndex, itemIndex) {
+      if (confirm("確定要刪除這項行程嗎？")) {
+        itineraryData[dayIndex].items.splice(itemIndex, 1);
+        saveDataToFirebase('itinerary', itineraryData);
       }
-      document.getElementById(`modal-step-${modalStep}`).classList.remove('hidden');
-      document.getElementById('modal-step-tag').innerText = `Step ${modalStep} / 4`;
+    }
 
-      const titles = ['請輸入行程時間', '請輸入行程名稱', '詳細備註 / 說明', '交通費金額'];
-      document.getElementById('modal-step-title').innerText = titles[modalStep - 1];
-      document.getElementById('modal-btn-prev').innerText = modalStep === 1 ? '取消' : '上一步';
-      document.getElementById('modal-btn-next').innerText = modalStep === 4 ? '完成新增' : '下一步';
+    function renderPrepList() {
+      const container = document.getElementById('prep-list-container');
+      container.innerHTML = '';
+      prepList.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
+        row.innerHTML = `
+          <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="togglePrepItem(${item.id})" class="w-4 h-4 rounded text-amber-500 focus:ring-0 cursor-pointer">
+          <span class="font-bold flex-1 text-xs cursor-pointer ${item.checked ? 'line-through' : ''}" onclick="togglePrepItem(${item.id})">${item.text}</span>
+          <button onclick="deletePrepItem(${item.id})" class="text-rose-400 hover:text-rose-600 text-xs px-1">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addPrepItem() {
+      const input = document.getElementById('new-prep-input');
+      const text = input.value.trim();
+      if (!text) return alert("請輸入物品名稱！");
+      prepList.push({ id: Date.now(), text, checked: false });
+      input.value = '';
+      saveDataToFirebase('prepList', prepList);
+    }
+
+    function deletePrepItem(id) {
+      prepList = prepList.filter(c => c.id !== id);
+      saveDataToFirebase('prepList', prepList);
+    }
+
+    function togglePrepItem(id) {
+      const item = prepList.find(c => c.id === id);
+      if (item) item.checked = !item.checked;
+      saveDataToFirebase('prepList', prepList);
+    }
+
+    function renderTicketList() {
+      const container = document.getElementById('ticket-list-container');
+      container.innerHTML = '';
+      ticketList.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
+        row.innerHTML = `
+          <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleTicketItem(${item.id})" class="w-4 h-4 rounded text-emerald-500 focus:ring-0 cursor-pointer">
+          <span class="font-bold flex-1 text-xs cursor-pointer ${item.checked ? 'line-through' : ''}" onclick="toggleTicketItem(${item.id})">${item.text}</span>
+          <button onclick="deleteTicketItem(${item.id})" class="text-rose-400 hover:text-rose-600 text-xs px-1">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addTicketItem() {
+      const input = document.getElementById('new-ticket-input');
+      const text = input.value.trim();
+      if (!text) return alert("請輸入門票/預約項目！");
+      ticketList.push({ id: Date.now(), text, checked: false });
+      input.value = '';
+      saveDataToFirebase('ticketList', ticketList);
+    }
+
+    function deleteTicketItem(id) {
+      ticketList = ticketList.filter(c => c.id !== id);
+      saveDataToFirebase('ticketList', ticketList);
+    }
+
+    function toggleTicketItem(id) {
+      const item = ticketList.find(c => c.id === id);
+      if (item) item.checked = !item.checked;
+      saveDataToFirebase('ticketList', ticketList);
+    }
+
+    function updateAllProgressUI() {
+      const prepTotal = prepList.length;
+      const prepDone = prepList.filter(c => c.checked).length;
+      const prepPercent = prepTotal === 0 ? 0 : Math.round((prepDone / prepTotal) * 100);
+
+      document.getElementById('home-prep-text').innerText = `${prepDone} / ${prepTotal} (${prepPercent}%)`;
+      document.getElementById('home-prep-bar').style.width = `${prepPercent}%`;
+      document.getElementById('more-prep-count').innerText = `${prepDone} / ${prepTotal} 完成`;
+
+      const ticketTotal = ticketList.length;
+      const ticketDone = ticketList.filter(c => c.checked).length;
+      const ticketPercent = ticketTotal === 0 ? 0 : Math.round((ticketDone / ticketTotal) * 100);
+
+      document.getElementById('home-ticket-text').innerText = `${ticketDone} / ${ticketTotal} (${ticketPercent}%)`;
+      document.getElementById('home-ticket-bar').style.width = `${ticketPercent}%`;
+      document.getElementById('more-ticket-count').innerText = `${ticketDone} / ${ticketTotal} 完成`;
+    }
+
+    function addExpense() {
+      const timeInput = document.getElementById('expense-time').value;
+      const payer = document.getElementById('expense-payer').value;
+      const cat = document.getElementById('expense-cat').value;
+      const amount = parseFloat(document.getElementById('expense-amount').value);
+      const note = document.getElementById('expense-note').value;
+
+      if (!amount || amount <= 0) return alert("請輸入正確的金額！");
+
+      let timeFormatted = '';
+      if (timeInput) {
+        const t = new Date(timeInput);
+        const month = (t.getMonth() + 1).toString().padStart(2, '0');
+        const date = t.getDate().toString().padStart(2, '0');
+        const hours = t.getHours().toString().padStart(2, '0');
+        const mins = t.getMinutes().toString().padStart(2, '0');
+        timeFormatted = `${month}/${date} ${hours}:${mins}`;
+      } else {
+        timeFormatted = '未設定時間';
+      }
+
+      expenses.push({ id: Date.now(), time: timeFormatted, payer, cat, amount, note });
+      saveDataToFirebase('expenses', expenses);
+
+      document.getElementById('expense-amount').value = '';
+      document.getElementById('expense-note').value = '';
+      setCurrentDateTimeInput();
+    }
+
+    function deleteExpense(id) {
+      expenses = expenses.filter(item => item.id !== id);
+      saveDataToFirebase('expenses', expenses);
+    }
+
+    function updateBudgetUI() {
+      let total = 0;
+      let yirouTotal = 0;
+      let chuxuanTotal = 0;
+
+      const listContainer = document.getElementById('expense-list');
+      listContainer.innerHTML = '';
+
+      if (expenses.length === 0) {
+        listContainer.innerHTML = `<p class="text-center py-4 text-slate-400">尚無支出紀錄</p>`;
+      } else {
+        expenses.forEach(item => {
+          total += item.amount;
+          if (item.payer === '奕柔') yirouTotal += item.amount;
+          if (item.payer === '楚軒') chuxuanTotal += item.amount;
+
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100';
+          row.innerHTML = `
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 text-[9px] font-bold rounded-md ${item.payer === '奕柔' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">${item.payer} 付</span>
+                <span class="font-bold text-slate-800 text-xs">${item.note || item.cat}</span>
+              </div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[9px] text-slate-400">${item.cat}</span>
+                <span class="text-[9px] text-slate-400 font-medium"><i class="fa-regular fa-clock mr-0.5"></i>${item.time}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-800 text-xs">¥${item.amount.toLocaleString()}</span>
+              <button onclick="deleteExpense(${item.id})" class="text-rose-400 hover:text-rose-600 text-xs p-1">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          `;
+          listContainer.prepend(row);
+        });
+      }
+
+      document.getElementById('total-expense').innerText = total.toLocaleString();
+      document.getElementById('payer-yirou').innerText = yirouTotal.toLocaleString();
+      document.getElementById('payer-chuxuan').innerText = chuxuanTotal.toLocaleString();
+
+      const half = total / 2;
+      const resultElem = document.getElementById('split-result');
+
+      if (yirouTotal > chuxuanTotal) {
+        const diff = yirouTotal - half;
+        resultElem.innerText = `楚軒 需給 奕柔 ¥${diff.toLocaleString()}`;
+      } else if (chuxuanTotal > yirouTotal) {
+        const diff = chuxuanTotal - half;
+        resultElem.innerText = `奕柔 需給 楚軒 ¥${diff.toLocaleString()}`;
+      } else {
+        resultElem.innerText = `目前金額平衡`;
+      }
     }
   </script>
+
 </body>
 </html>
