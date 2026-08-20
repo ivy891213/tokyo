@@ -435,7 +435,6 @@
 
       </div>
 
-      <!-- 按鈕已對調：左邊為取消/上一步，右邊為下一步/確定 -->
       <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
         <button id="modal-btn-prev" onclick="modalPrevStep()" class="flex-1 bg-slate-200 active:scale-95 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
           取消
@@ -467,11 +466,31 @@
     </button>
   </nav>
 
-  <script>
-    // 預設行程數據
+  <!-- 引入 Firebase 並啟動邏輯 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.x.x/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.x.x/firebase-analytics.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.x.x/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
+      authDomain: "tokyo20261128-20261213.firebaseapp.com",
+      databaseURL: "https://tokyo20261128-20261213-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tokyo20261128-20261213",
+      storageBucket: "tokyo20261128-20261213.firebasestorage.app",
+      messagingSenderId: "293845890979",
+      appId: "1:293845890979:web:aba55dca6cbdd6226b4c16",
+      measurementId: "G-SF0TB6LZHE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+
+    // 預設資料結構
     let itineraryData = [
       { day: 1, date: '11.28 SAT', title: '抵達東京 ➔ 晴空塔 ➔ 澀谷 SKY', items: [
-        { time: '10:35', title: '抵達咸田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
+        { time: '10:35', title: '抵達成田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
         { time: '11:30', title: '熙樂苑 KIRAKUEN WAGYU 午餐', desc: '晴空塔採買：3F Uniqlo, POP MART, Dr.Martens, JUMP', cost: 0 },
         { time: '17:30', title: '澀谷 SKY 展望台 (Shibuya Sky)', desc: '地鐵：押上 - 澀谷 (30min / ¥220)', cost: 220 }
       ]},
@@ -499,7 +518,7 @@
       { day: 14, date: '12.11 FRI', title: '自由探索行程', items: [] },
       { day: 15, date: '12.12 SAT', title: '自由探索行程 / 伴手禮最後採買', items: [] },
       { day: 16, date: '12.13 SUN', title: '成田機場 ➔ 返台', items: [
-        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
+        { time: '09:25', title: '抵達成田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
         { time: '11:25', title: '✈️ 台灣虎航 IT201 起飛返台', desc: '', cost: 0 }
       ]}
     ];
@@ -516,27 +535,65 @@
     ];
 
     let expenses = [];
-
-    // Modal 多步驟控制變數
     let currentModalDayIndex = null;
     let currentStep = 1;
 
-    window.onload = function() {
+    // 從 Firebase 讀取資料
+    async function loadDataFromCloud() {
+      try {
+        const docRef = doc(db, "tripData", "tokyo2026");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.itinerary) itineraryData = data.itinerary;
+          if (data.prepList) prepList = data.prepList;
+          if (data.ticketList) ticketList = data.ticketList;
+          if (data.expenses) expenses = data.expenses;
+        }
+      } catch (e) {
+        console.error("載入雲端資料失敗: ", e);
+      } finally {
+        // 無論雲端有無資料，最後都要渲染畫面
+        renderAll();
+      }
+    }
+
+    // 將資料寫回 Firebase
+    async function saveDataToCloud() {
+      try {
+        await setDoc(doc(db, "tripData", "tokyo2026"), {
+          itinerary: itineraryData,
+          prepList: prepList,
+          ticketList: ticketList,
+          expenses: expenses
+        });
+      } catch (e) {
+        console.error("寫回雲端失敗: ", e);
+      }
+    }
+
+    function renderAll() {
       setCurrentDateTimeInput();
       renderTimeline();
       renderPrepList();
       renderTicketList();
       updateAllProgressUI();
       calculateTransportExpenses();
+      updateBudgetUI();
+    }
+
+    window.onload = function() {
+      loadDataFromCloud(); // 頁面載入時先抓雲端資料
     };
 
     function setCurrentDateTimeInput() {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('expense-time').value = now.toISOString().slice(0, 16);
+      const el = document.getElementById('expense-time');
+      if (el) el.value = now.toISOString().slice(0, 16);
     }
 
-    function switchMainPage(pageId) {
+    window.switchMainPage = function(pageId) {
       document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
       document.getElementById('page-' + pageId).classList.remove('hidden');
 
@@ -548,14 +605,14 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function scrollToDay(elementId) {
+    window.scrollToDay = function(elementId) {
       const target = document.getElementById(elementId);
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
-    function toggleTransportDetails() {
+    window.toggleTransportDetails = function() {
       const details = document.getElementById('transport-details-container');
       const icon = document.getElementById('transport-toggle-icon');
       if (details.classList.contains('hidden')) {
@@ -576,7 +633,6 @@
         dayData.items.forEach((item) => {
           if (item.cost && item.cost > 0) {
             totalCost += item.cost;
-
             const itemRow = document.createElement('div');
             itemRow.className = 'bg-white/10 hover:bg-white/20 p-2 rounded-xl flex justify-between items-center cursor-pointer transition active:scale-[0.98]';
             itemRow.onclick = function() {
@@ -598,7 +654,6 @@
           }
         });
       });
-
       document.getElementById('timeline-transport-total').innerText = totalCost.toLocaleString();
     }
 
@@ -650,54 +705,37 @@
         `;
         container.appendChild(card);
       });
-
       calculateTransportExpenses();
     }
 
-    // 💡 多步驟 Modal 開啟與控制邏輯
-    function openAddTimelineModal(dayIndex) {
+    window.openAddTimelineModal = function(dayIndex) {
       currentModalDayIndex = dayIndex;
       currentStep = 1;
-      
-      // 重置欄位
       document.getElementById('input-step-time').value = '12:00';
       document.getElementById('input-step-title').value = '';
       document.getElementById('input-step-desc').value = '';
       document.getElementById('input-step-cost').value = '0';
-
       updateModalUI();
       document.getElementById('item-modal').classList.remove('hidden');
     }
 
-    function closeItemModal() {
+    window.closeItemModal = function() {
       document.getElementById('item-modal').classList.add('hidden');
     }
 
     function updateModalUI() {
-      const titles = [
-        '請輸入行程時間',
-        '請輸入行程名稱',
-        '請輸入詳細備註 (選填)',
-        '請輸入交通費金額 (日圓)'
-      ];
-
+      const titles = ['請輸入行程時間', '請輸入行程名稱', '請輸入詳細備註 (選填)', '請輸入交通費金額 (日圓)'];
       document.getElementById('modal-step-tag').innerText = `Step ${currentStep} / 4`;
       document.getElementById('modal-step-title').innerText = titles[currentStep - 1];
 
-      // 切換步驟顯示
       for (let i = 1; i <= 4; i++) {
         const stepElem = document.getElementById(`modal-step-${i}`);
-        if (i === currentStep) {
-          stepElem.classList.remove('hidden');
-        } else {
-          stepElem.classList.add('hidden');
-        }
+        if (i === currentStep) stepElem.classList.remove('hidden');
+        else stepElem.classList.add('hidden');
       }
 
       const btnNext = document.getElementById('modal-btn-next');
       const btnPrev = document.getElementById('modal-btn-prev');
-
-      // 更新按鈕文字（左邊為 prev、右邊為 next）
       if (currentStep === 1) {
         btnPrev.innerText = '取消';
         btnNext.innerText = '下一步';
@@ -710,7 +748,7 @@
       }
     }
 
-    function modalNextStep() {
+    window.modalNextStep = function() {
       if (currentStep === 1) {
         const time = document.getElementById('input-step-time').value.trim();
         if (!time) return alert("請輸入時間！");
@@ -722,38 +760,33 @@
       } else if (currentStep === 3) {
         currentStep = 4;
       } else if (currentStep === 4) {
-        // 完成，保存行程
         const time = document.getElementById('input-step-time').value.trim();
         const title = document.getElementById('input-step-title').value.trim();
         const desc = document.getElementById('input-step-desc').value.trim();
-        const costInput = document.getElementById('input-step-cost').value;
-        const cost = parseInt(costInput) || 0;
+        const cost = parseInt(document.getElementById('input-step-cost').value) || 0;
 
         itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
         renderTimeline();
+        saveDataToCloud(); // 寫回雲端
         closeItemModal();
         return;
       }
       updateModalUI();
     }
 
-    function modalPrevStep() {
-      if (currentStep === 1) {
-        closeItemModal();
-      } else {
-        currentStep--;
-        updateModalUI();
-      }
+    window.modalPrevStep = function() {
+      if (currentStep === 1) closeItemModal();
+      else { currentStep--; updateModalUI(); }
     }
 
-    function deleteTimelineItem(dayIndex, itemIndex) {
+    window.deleteTimelineItem = function(dayIndex, itemIndex) {
       if (confirm("確定要刪除這項行程嗎？")) {
         itineraryData[dayIndex].items.splice(itemIndex, 1);
         renderTimeline();
+        saveDataToCloud();
       }
     }
 
-    // --- 行前物品與預約 ---
     function renderPrepList() {
       const container = document.getElementById('prep-list-container');
       container.innerHTML = '';
@@ -771,7 +804,7 @@
       });
     }
 
-    function addPrepItem() {
+    window.addPrepItem = function() {
       const input = document.getElementById('new-prep-input');
       const text = input.value.trim();
       if (!text) return alert("請輸入物品名稱！");
@@ -779,19 +812,22 @@
       input.value = '';
       renderPrepList();
       updateAllProgressUI();
+      saveDataToCloud();
     }
 
-    function deletePrepItem(id) {
+    window.deletePrepItem = function(id) {
       prepList = prepList.filter(c => c.id !== id);
       renderPrepList();
       updateAllProgressUI();
+      saveDataToCloud();
     }
 
-    function togglePrepItem(id) {
+    window.togglePrepItem = function(id) {
       const item = prepList.find(c => c.id === id);
       if (item) item.checked = !item.checked;
       renderPrepList();
       updateAllProgressUI();
+      saveDataToCloud();
     }
 
     function renderTicketList() {
@@ -811,7 +847,7 @@
       });
     }
 
-    function addTicketItem() {
+    window.addTicketItem = function() {
       const input = document.getElementById('new-ticket-input');
       const text = input.value.trim();
       if (!text) return alert("請輸入門票/預約項目！");
@@ -819,19 +855,22 @@
       input.value = '';
       renderTicketList();
       updateAllProgressUI();
+      saveDataToCloud();
     }
 
-    function deleteTicketItem(id) {
+    window.deleteTicketItem = function(id) {
       ticketList = ticketList.filter(c => c.id !== id);
       renderTicketList();
       updateAllProgressUI();
+      saveDataToCloud();
     }
 
-    function toggleTicketItem(id) {
+    window.toggleTicketItem = function(id) {
       const item = ticketList.find(c => c.id === id);
       if (item) item.checked = !item.checked;
       renderTicketList();
       updateAllProgressUI();
+      saveDataToCloud();
     }
 
     function updateAllProgressUI() {
@@ -852,7 +891,7 @@
       document.getElementById('more-ticket-count').innerText = `${ticketDone} / ${ticketTotal} 完成`;
     }
 
-    function addExpense() {
+    window.addExpense = function() {
       const timeInput = document.getElementById('expense-time').value;
       const payer = document.getElementById('expense-payer').value;
       const cat = document.getElementById('expense-cat').value;
@@ -879,11 +918,13 @@
       document.getElementById('expense-amount').value = '';
       document.getElementById('expense-note').value = '';
       setCurrentDateTimeInput();
+      saveDataToCloud();
     }
 
-    function deleteExpense(id) {
+    window.deleteExpense = function(id) {
       expenses = expenses.filter(item => item.id !== id);
       updateBudgetUI();
+      saveDataToCloud();
     }
 
     function updateBudgetUI() {
