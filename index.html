@@ -27,6 +27,7 @@
 
   <main class="p-4 space-y-4">
 
+    <!-- HOME PAGE -->
     <div id="page-home" class="page-view space-y-4">
       
       <section class="relative bg-[#2C4A5A] rounded-3xl overflow-hidden shadow-sm p-6 text-white text-center">
@@ -190,6 +191,7 @@
 
     </div>
 
+    <!-- TIMELINE PAGE -->
     <div id="page-timeline" class="page-view hidden space-y-3">
       
       <div class="sticky top-[53px] z-40 bg-[#EEF2F5]/90 backdrop-blur-md py-2 -mx-4 px-4 border-b border-slate-200/60">
@@ -240,6 +242,7 @@
       <div id="timeline-container" class="space-y-4"></div>
     </div>
 
+    <!-- MAP PAGE -->
     <div id="page-map" class="page-view hidden space-y-3">
       <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
         <div class="border-b border-slate-100 pb-2">
@@ -297,6 +300,7 @@
       </section>
     </div>
 
+    <!-- MORE PAGE -->
     <div id="page-more" class="page-view hidden space-y-4">
       <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
@@ -395,6 +399,7 @@
 
   </main>
 
+  <!-- MODAL -->
   <div id="item-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
       
@@ -447,6 +452,7 @@
     </div>
   </div>
 
+  <!-- NAVIGATION -->
   <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-3 z-50 shadow-lg">
     <button onclick="switchMainPage('home')" id="nav-btn-home" class="main-nav-btn flex flex-col items-center text-[#2C4A5A]">
       <i class="fa-solid fa-house text-base"></i>
@@ -466,31 +472,11 @@
     </button>
   </nav>
 
-  <!-- 引入 Firebase 並啟動邏輯 -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.x.x/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.x.x/firebase-analytics.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.x.x/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
-      authDomain: "tokyo20261128-20261213.firebaseapp.com",
-      databaseURL: "https://tokyo20261128-20261213-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "tokyo20261128-20261213",
-      storageBucket: "tokyo20261128-20261213.firebasestorage.app",
-      messagingSenderId: "293845890979",
-      appId: "1:293845890979:web:aba55dca6cbdd6226b4c16",
-      measurementId: "G-SF0TB6LZHE"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
-
-    // 預設資料結構
-    let itineraryData = [
+  <script>
+    // 預設資料與 LocalStorage 讀取
+    let defaultItinerary = [
       { day: 1, date: '11.28 SAT', title: '抵達東京 ➔ 晴空塔 ➔ 澀谷 SKY', items: [
-        { time: '10:35', title: '抵達成田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
+        { time: '10:35', title: '抵達咸田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
         { time: '11:30', title: '熙樂苑 KIRAKUEN WAGYU 午餐', desc: '晴空塔採買：3F Uniqlo, POP MART, Dr.Martens, JUMP', cost: 0 },
         { time: '17:30', title: '澀谷 SKY 展望台 (Shibuya Sky)', desc: '地鐵：押上 - 澀谷 (30min / ¥220)', cost: 220 }
       ]},
@@ -518,61 +504,41 @@
       { day: 14, date: '12.11 FRI', title: '自由探索行程', items: [] },
       { day: 15, date: '12.12 SAT', title: '自由探索行程 / 伴手禮最後採買', items: [] },
       { day: 16, date: '12.13 SUN', title: '成田機場 ➔ 返台', items: [
-        { time: '09:25', title: '抵達成田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
+        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
         { time: '11:25', title: '✈️ 台灣虎航 IT201 起飛返台', desc: '', cost: 0 }
       ]}
     ];
 
-    let prepList = [
-      { id: Date.now() + 1, text: '護照正本 (確認6個月以上效期)', checked: false },
-      { id: Date.now() + 2, text: 'Visit Japan Web 入境填寫', checked: false },
-      { id: Date.now() + 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
+    let defaultPrep = [
+      { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
+      { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
+      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
     ];
 
-    let ticketList = [
-      { id: Date.now() + 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
-      { id: Date.now() + 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
+    let defaultTicket = [
+      { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
+      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
     ];
 
-    let expenses = [];
+    // 從 localStorage 讀取或初始化
+    let itineraryData = JSON.parse(localStorage.getItem('tokyo_itinerary')) || defaultItinerary;
+    let prepList = JSON.parse(localStorage.getItem('tokyo_prep')) || defaultPrep;
+    let ticketList = JSON.parse(localStorage.getItem('tokyo_ticket')) || defaultTicket;
+    let expenses = JSON.parse(localStorage.getItem('tokyo_expenses')) || [];
+
+    // 儲存至 localStorage 的核心函式
+    function saveData() {
+      localStorage.setItem('tokyo_itinerary', JSON.stringify(itineraryData));
+      localStorage.setItem('tokyo_prep', JSON.stringify(prepList));
+      localStorage.setItem('tokyo_ticket', JSON.stringify(ticketList));
+      localStorage.setItem('tokyo_expenses', JSON.stringify(expenses));
+    }
+
+    // Modal 多步驟控制變數
     let currentModalDayIndex = null;
     let currentStep = 1;
 
-    // 從 Firebase 讀取資料
-    async function loadDataFromCloud() {
-      try {
-        const docRef = doc(db, "tripData", "tokyo2026");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.itinerary) itineraryData = data.itinerary;
-          if (data.prepList) prepList = data.prepList;
-          if (data.ticketList) ticketList = data.ticketList;
-          if (data.expenses) expenses = data.expenses;
-        }
-      } catch (e) {
-        console.error("載入雲端資料失敗: ", e);
-      } finally {
-        // 無論雲端有無資料，最後都要渲染畫面
-        renderAll();
-      }
-    }
-
-    // 將資料寫回 Firebase
-    async function saveDataToCloud() {
-      try {
-        await setDoc(doc(db, "tripData", "tokyo2026"), {
-          itinerary: itineraryData,
-          prepList: prepList,
-          ticketList: ticketList,
-          expenses: expenses
-        });
-      } catch (e) {
-        console.error("寫回雲端失敗: ", e);
-      }
-    }
-
-    function renderAll() {
+    window.onload = function() {
       setCurrentDateTimeInput();
       renderTimeline();
       renderPrepList();
@@ -580,20 +546,15 @@
       updateAllProgressUI();
       calculateTransportExpenses();
       updateBudgetUI();
-    }
-
-    window.onload = function() {
-      loadDataFromCloud(); // 頁面載入時先抓雲端資料
     };
 
     function setCurrentDateTimeInput() {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      const el = document.getElementById('expense-time');
-      if (el) el.value = now.toISOString().slice(0, 16);
+      document.getElementById('expense-time').value = now.toISOString().slice(0, 16);
     }
 
-    window.switchMainPage = function(pageId) {
+    function switchMainPage(pageId) {
       document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
       document.getElementById('page-' + pageId).classList.remove('hidden');
 
@@ -605,14 +566,14 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    window.scrollToDay = function(elementId) {
+    function scrollToDay(elementId) {
       const target = document.getElementById(elementId);
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
-    window.toggleTransportDetails = function() {
+    function toggleTransportDetails() {
       const details = document.getElementById('transport-details-container');
       const icon = document.getElementById('transport-toggle-icon');
       if (details.classList.contains('hidden')) {
@@ -633,6 +594,7 @@
         dayData.items.forEach((item) => {
           if (item.cost && item.cost > 0) {
             totalCost += item.cost;
+
             const itemRow = document.createElement('div');
             itemRow.className = 'bg-white/10 hover:bg-white/20 p-2 rounded-xl flex justify-between items-center cursor-pointer transition active:scale-[0.98]';
             itemRow.onclick = function() {
@@ -654,6 +616,7 @@
           }
         });
       });
+
       document.getElementById('timeline-transport-total').innerText = totalCost.toLocaleString();
     }
 
@@ -705,37 +668,50 @@
         `;
         container.appendChild(card);
       });
+
       calculateTransportExpenses();
     }
 
-    window.openAddTimelineModal = function(dayIndex) {
+    function openAddTimelineModal(dayIndex) {
       currentModalDayIndex = dayIndex;
       currentStep = 1;
+      
       document.getElementById('input-step-time').value = '12:00';
       document.getElementById('input-step-title').value = '';
       document.getElementById('input-step-desc').value = '';
       document.getElementById('input-step-cost').value = '0';
+
       updateModalUI();
       document.getElementById('item-modal').classList.remove('hidden');
     }
 
-    window.closeItemModal = function() {
+    function closeItemModal() {
       document.getElementById('item-modal').classList.add('hidden');
     }
 
     function updateModalUI() {
-      const titles = ['請輸入行程時間', '請輸入行程名稱', '請輸入詳細備註 (選填)', '請輸入交通費金額 (日圓)'];
+      const titles = [
+        '請輸入行程時間',
+        '請輸入行程名稱',
+        '請輸入詳細備註 (選填)',
+        '請輸入交通費金額 (日圓)'
+      ];
+
       document.getElementById('modal-step-tag').innerText = `Step ${currentStep} / 4`;
       document.getElementById('modal-step-title').innerText = titles[currentStep - 1];
 
       for (let i = 1; i <= 4; i++) {
         const stepElem = document.getElementById(`modal-step-${i}`);
-        if (i === currentStep) stepElem.classList.remove('hidden');
-        else stepElem.classList.add('hidden');
+        if (i === currentStep) {
+          stepElem.classList.remove('hidden');
+        } else {
+          stepElem.classList.add('hidden');
+        }
       }
 
       const btnNext = document.getElementById('modal-btn-next');
       const btnPrev = document.getElementById('modal-btn-prev');
+
       if (currentStep === 1) {
         btnPrev.innerText = '取消';
         btnNext.innerText = '下一步';
@@ -748,7 +724,7 @@
       }
     }
 
-    window.modalNextStep = function() {
+    function modalNextStep() {
       if (currentStep === 1) {
         const time = document.getElementById('input-step-time').value.trim();
         if (!time) return alert("請輸入時間！");
@@ -763,30 +739,36 @@
         const time = document.getElementById('input-step-time').value.trim();
         const title = document.getElementById('input-step-title').value.trim();
         const desc = document.getElementById('input-step-desc').value.trim();
-        const cost = parseInt(document.getElementById('input-step-cost').value) || 0;
+        const costInput = document.getElementById('input-step-cost').value;
+        const cost = parseInt(costInput) || 0;
 
         itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
+        saveData();
         renderTimeline();
-        saveDataToCloud(); // 寫回雲端
         closeItemModal();
         return;
       }
       updateModalUI();
     }
 
-    window.modalPrevStep = function() {
-      if (currentStep === 1) closeItemModal();
-      else { currentStep--; updateModalUI(); }
-    }
-
-    window.deleteTimelineItem = function(dayIndex, itemIndex) {
-      if (confirm("確定要刪除這項行程嗎？")) {
-        itineraryData[dayIndex].items.splice(itemIndex, 1);
-        renderTimeline();
-        saveDataToCloud();
+    function modalPrevStep() {
+      if (currentStep === 1) {
+        closeItemModal();
+      } else {
+        currentStep--;
+        updateModalUI();
       }
     }
 
+    function deleteTimelineItem(dayIndex, itemIndex) {
+      if (confirm("確定要刪除這項行程嗎？")) {
+        itineraryData[dayIndex].items.splice(itemIndex, 1);
+        saveData();
+        renderTimeline();
+      }
+    }
+
+    // --- 行前物品與預約 ---
     function renderPrepList() {
       const container = document.getElementById('prep-list-container');
       container.innerHTML = '';
@@ -804,30 +786,30 @@
       });
     }
 
-    window.addPrepItem = function() {
+    function addPrepItem() {
       const input = document.getElementById('new-prep-input');
       const text = input.value.trim();
       if (!text) return alert("請輸入物品名稱！");
       prepList.push({ id: Date.now(), text, checked: false });
+      saveData();
       input.value = '';
       renderPrepList();
       updateAllProgressUI();
-      saveDataToCloud();
     }
 
-    window.deletePrepItem = function(id) {
+    function deletePrepItem(id) {
       prepList = prepList.filter(c => c.id !== id);
+      saveData();
       renderPrepList();
       updateAllProgressUI();
-      saveDataToCloud();
     }
 
-    window.togglePrepItem = function(id) {
+    function togglePrepItem(id) {
       const item = prepList.find(c => c.id === id);
       if (item) item.checked = !item.checked;
+      saveData();
       renderPrepList();
       updateAllProgressUI();
-      saveDataToCloud();
     }
 
     function renderTicketList() {
@@ -847,30 +829,30 @@
       });
     }
 
-    window.addTicketItem = function() {
+    function addTicketItem() {
       const input = document.getElementById('new-ticket-input');
       const text = input.value.trim();
       if (!text) return alert("請輸入門票/預約項目！");
       ticketList.push({ id: Date.now(), text, checked: false });
+      saveData();
       input.value = '';
       renderTicketList();
       updateAllProgressUI();
-      saveDataToCloud();
     }
 
-    window.deleteTicketItem = function(id) {
+    function deleteTicketItem(id) {
       ticketList = ticketList.filter(c => c.id !== id);
+      saveData();
       renderTicketList();
       updateAllProgressUI();
-      saveDataToCloud();
     }
 
-    window.toggleTicketItem = function(id) {
+    function toggleTicketItem(id) {
       const item = ticketList.find(c => c.id === id);
       if (item) item.checked = !item.checked;
+      saveData();
       renderTicketList();
       updateAllProgressUI();
-      saveDataToCloud();
     }
 
     function updateAllProgressUI() {
@@ -891,7 +873,7 @@
       document.getElementById('more-ticket-count').innerText = `${ticketDone} / ${ticketTotal} 完成`;
     }
 
-    window.addExpense = function() {
+    function addExpense() {
       const timeInput = document.getElementById('expense-time').value;
       const payer = document.getElementById('expense-payer').value;
       const cat = document.getElementById('expense-cat').value;
@@ -913,18 +895,18 @@
       }
 
       expenses.push({ id: Date.now(), time: timeFormatted, payer, cat, amount, note });
+      saveData();
       updateBudgetUI();
 
       document.getElementById('expense-amount').value = '';
       document.getElementById('expense-note').value = '';
       setCurrentDateTimeInput();
-      saveDataToCloud();
     }
 
-    window.deleteExpense = function(id) {
+    function deleteExpense(id) {
       expenses = expenses.filter(item => item.id !== id);
+      saveData();
       updateBudgetUI();
-      saveDataToCloud();
     }
 
     function updateBudgetUI() {
