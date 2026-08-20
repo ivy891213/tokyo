@@ -357,11 +357,12 @@
 
     async function loadDataFromCloud() {
       try {
-        const docRef = doc(db, "tripData", "tokyo2026");
+        // 對應您雲端上的 trips 集合與 tokyo2026 文件
+        const docRef = doc(db, "trips", "tokyo2026");
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.itinerary) itineraryData = data.itinerary;
+          if (data.itineraryData) itineraryData = data.itineraryData;
           if (data.prepList) prepList = data.prepList;
           if (data.ticketList) ticketList = data.ticketList;
           if (data.expenses) expenses = data.expenses;
@@ -375,8 +376,8 @@
 
     async function saveDataToCloud() {
       try {
-        await setDoc(doc(db, "tripData", "tokyo2026"), {
-          itinerary: itineraryData,
+        await setDoc(doc(db, "trips", "tokyo2026"), {
+          itineraryData: itineraryData,
           prepList: prepList,
           ticketList: ticketList,
           expenses: expenses
@@ -396,7 +397,6 @@
       updateBudgetUI();
     }
 
-    // 將所有按鈕會呼叫的函式掛載到 window，解決 undefined 問題
     window.switchMainPage = function(pageId) {
       document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
       document.getElementById('page-' + pageId).classList.remove('hidden');
@@ -450,7 +450,7 @@
         card.id = `day-${d.day}`;
         card.className = 'scroll-mt-28 bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3';
         
-        let itemsHTML = d.items.length === 0 ? `<p class="text-xs text-400 italic">尚未安排行程...</p>` : '';
+        let itemsHTML = d.items.length === 0 ? `<p class="text-xs text-slate-400 italic">尚未安排行程...</p>` : '';
         d.items.forEach((item, itemIndex) => {
           itemsHTML += `
             <div class="flex gap-2 items-start">
@@ -681,7 +681,6 @@
       if (el) el.value = now.toISOString().slice(0, 16);
     }
 
-    // 啟動載入
     loadDataFromCloud();
   </script>
 </body>
