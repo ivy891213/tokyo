@@ -368,297 +368,308 @@
       
       <!-- 頂部置頂導覽列 (與每日行程頁面保持一致，固定在上方) -->
       <div class="sticky top-0 z-20 bg-slate-50/90 backdrop-blur-md pt-1 pb-3 -mx-2 px-2">
-        <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-100 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
-          <div class="flex items-center gap-1.5 whitespace-nowrap">
-            <span class="text-xs font-black text-slate-700 px-2 flex items-center gap-1">
-              <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 81個地標
+        <div class="bg-white rounded-2xl p-2.5 shadow-sm border border-slate-100 flex flex-col gap-2">
+          
+          <!-- 最上方分類按鈕區 -->
+          <div class="flex items-center justify-between gap-1 border-b border-slate-100 pb-2">
+            <span class="text-xs font-black text-slate-700 px-1 flex items-center gap-1">
+              <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 全部地標
             </span>
+            <div class="flex items-center gap-1.5 text-[11px] font-bold">
+              <a href="#map-section-1" class="px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg hover:bg-sky-100 transition">景點/拍照</a>
+              <a href="#map-section-2" class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition">美食/咖啡</a>
+              <a href="#map-section-3" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition">購物/樂器</a>
+            </div>
           </div>
-          <div class="flex items-center gap-1 text-[11px] font-bold">
-            <a href="#map-section-1" class="px-3 py-1.5 bg-sky-50 text-sky-700 rounded-xl hover:bg-sky-100 transition">景點</a>
-            <a href="#map-section-2" class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 transition">美食</a>
-            <a href="#map-section-3" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition">購物/樂器</a>
+
+          <!-- 計數與快速列 -->
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold text-slate-400">共 81 個精彩地點</span>
+            <div class="flex items-center gap-1 text-[11px] font-bold text-[#008BB0]">
+              <i class="fa-solid fa-arrow-down text-[10px]"></i> 點擊下方快速跳轉
+            </div>
           </div>
+
         </div>
       </div>
 
       <!-- 1. 景點 / 拍照勝地 -->
-      <section id="map-section-1" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-16">
+      <section id="map-section-1" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-24">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
           <h3 class="font-black text-xs text-slate-800 tracking-wider">景點 / 拍照勝地 / 公園 (Sightseeing)</h3>
         </div>
         <div class="grid grid-cols-1 gap-2 text-xs">
           <a href="https://maps.google.com/?q=東京迪士尼樂園" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">1. 東京迪士尼樂園</span>
+            <span class="font-bold text-slate-800">東京迪士尼樂園</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=東京鐵塔" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">2. 東京鐵塔</span>
+            <span class="font-bold text-slate-800">東京鐵塔</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=澀谷SKY" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">3. 澀谷 SKY</span>
+            <span class="font-bold text-slate-800">澀谷 SKY</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=秋葉原駅" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">4. 秋葉原駅</span>
+            <span class="font-bold text-slate-800">秋葉原駅</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=淺草寺" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">5. 淺草寺</span>
+            <span class="font-bold text-slate-800">淺草寺</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=東京晴空塔" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">7. 東京晴空塔</span>
+            <span class="font-bold text-slate-800">東京晴空塔</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=御台場海濱公園" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">25. 御台場海濱公園</span>
+            <span class="font-bold text-slate-800">御台場海濱公園</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=鐮倉高校前" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">27. 鐮倉高校前</span>
+            <span class="font-bold text-slate-800">鐮倉高校前</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Shichirigahama Beach" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">28. Shichirigahama Beach</span>
+            <span class="font-bold text-slate-800">Shichirigahama Beach</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=鶴岡八幡宮" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">33. 鶴岡八幡宮</span>
+            <span class="font-bold text-slate-800">鶴岡八幡宮</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=佐助稻荷神社" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">34. 佐助稻荷神社</span>
+            <span class="font-bold text-slate-800">佐助稻荷神社</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=赤羽橋" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">37. 赤羽橋</span>
+              <span class="font-bold text-slate-800">赤羽橋</span>
               <p class="text-[10px] text-slate-400">拍東京鐵塔好地點</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=3752 Hirano, Yamanakako, Minamitsuru District, Yamanashi 401-0502日本" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">38. THE PARK (山中湖)</span>
+            <span class="font-bold text-slate-800">THE PARK (山中湖)</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Shiratori Beach" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">39. Shiratori Beach</span>
+            <span class="font-bold text-slate-800">Shiratori Beach</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Yamanakakohirano" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">40. Yamanakakohirano</span>
+            <span class="font-bold text-slate-800">Yamanakakohirano</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=平野之濱" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">41. 平野之濱</span>
+            <span class="font-bold text-slate-800">平野之濱</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=長池親水公園" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">42. 長池親水公園</span>
+            <span class="font-bold text-slate-800">長池親水公園</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=新倉富士淺間神社" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">43. 新倉富士淺間神社</span>
+            <span class="font-bold text-slate-800">新倉富士淺間神社</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=下吉田" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">44. 下吉田</span>
+            <span class="font-bold text-slate-800">下吉田</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=中央道下吉田" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">45. 中央道下吉田</span>
+            <span class="font-bold text-slate-800">中央道下吉田</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=富士山夢之大橋" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">46. 富士山夢之大橋</span>
+            <span class="font-bold text-slate-800">富士山夢之大橋</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=日川時計店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">47. 日川時計店</span>
+            <span class="font-bold text-slate-800">日川時計店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=富士山山中湖 富士山飯店入口" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">49. 富士山山中湖（富士山飯店入口）</span>
+            <span class="font-bold text-slate-800">富士山山中湖（富士山飯店入口）</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=池袋" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">51. 池袋</span>
+            <span class="font-bold text-slate-800">池袋</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Shinjuku Station" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">62. Shinjuku Station</span>
+            <span class="font-bold text-slate-800">Shinjuku Station</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=京島南公園" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">63. 京島南公園</span>
+              <span class="font-bold text-slate-800">京島南公園</span>
               <p class="text-[10px] text-slate-400">拍晴空塔的點</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=teamLab Borderless MORI Building DIGITAL ART MUSEUM" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">64. teamLab Borderless</span>
+            <span class="font-bold text-slate-800">teamLab Borderless</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=六本木新城展望台 東京城市景觀" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">65. 六本木新城展望台 東京城市景觀</span>
+            <span class="font-bold text-slate-800">六本木新城展望台 東京城市景觀</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=KALEDOTOWER" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">77. KALEDOTOWER</span>
+              <span class="font-bold text-slate-800">KALEDOTOWER</span>
               <p class="text-[10px] text-slate-400">拍東京鐵塔地點</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=國立新美術館" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">78. 國立新美術館</span>
+            <span class="font-bold text-slate-800">國立新美術館</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
         </div>
       </section>
 
       <!-- 2. 美食 / 餐廳 / 咖啡廳 -->
-      <section id="map-section-2" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-16">
+      <section id="map-section-2" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-24">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
           <h3 class="font-black text-xs text-slate-800 tracking-wider">美食 / 餐廳 / 咖啡廳 (Food & Drink)</h3>
         </div>
         <div class="grid grid-cols-1 gap-2 text-xs">
           <a href="https://maps.google.com/?q=五代目 花山烏冬 銀座店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">9. 五代目 花山烏冬 銀座店</span>
+            <span class="font-bold text-slate-800">五代目 花山烏冬 銀座店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=五代目 花山烏冬 日本橋店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">10. 五代目 花山烏冬 日本橋店</span>
+            <span class="font-bold text-slate-800">五代目 花山烏冬 日本橋店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=bills 七里ヶ浜" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">29. bills 七里ヶ浜</span>
+            <span class="font-bold text-slate-800">bills 七里ヶ浜</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Windera Cafe Shichirigahama" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">30. Windera Cafe Shichirigahama</span>
+            <span class="font-bold text-slate-800">Windera Cafe Shichirigahama</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Cafe Yoridocoro" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">31. Cafe Yoridocoro</span>
+            <span class="font-bold text-slate-800">Cafe Yoridocoro</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Sasaya Asakusa" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">35. Sasaya Asakusa</span>
+            <span class="font-bold text-slate-800">Sasaya Asakusa</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=TsuruTonTan UDON NOODLE Brasserie SHIBUYA" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">36. TsuruTonTan 澀谷</span>
+            <span class="font-bold text-slate-800">TsuruTonTan 澀谷</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=羅森便利商店 河口湖車站前店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">48. 羅森便利商店 河口湖車站前店</span>
+            <span class="font-bold text-slate-800">羅森便利商店 河口湖車站前店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=燒肉 Aburu 大塚店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">50. 燒肉 Aburu。大塚店</span>
+              <span class="font-bold text-slate-800">燒肉 Aburu。大塚店</span>
               <p class="text-[10px] text-rose-500 font-medium">前男友燒肉店</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Iruca Tokyo Roppongi" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">52. Iruca Tokyo Roppongi</span>
+              <span class="font-bold text-slate-800">Iruca Tokyo Roppongi</span>
               <p class="text-[10px] text-amber-600 font-medium">米其林拉麵</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=EDW yellow Shibuya" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">53. EDW yellow Shibuya</span>
+            <span class="font-bold text-slate-800">EDW yellow Shibuya</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=淺草今半 國際通本店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">54. 淺草今半 國際通本店</span>
+            <span class="font-bold text-slate-800">淺草今半 國際通本店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=日本橋炸豬排 一 HAJIME" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">55. 日本橋炸豬排 一 HAJIME</span>
+            <span class="font-bold text-slate-800">日本橋炸豬排 一 HAJIME</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Aidaya" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">56. Aidaya</span>
+            <span class="font-bold text-slate-800">Aidaya</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=黑毛和牛壽喜燒 日本橋一里" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">57. 黑毛和牛壽喜燒 日本橋一里</span>
+            <span class="font-bold text-slate-800">黑毛和牛壽喜燒 日本橋一里</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Kanimatsuri Crab Restaurant" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">58. Kanimatsuri Crab Restaurant</span>
+            <span class="font-bold text-slate-800">Kanimatsuri Crab Restaurant</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Gyukatsu Motomura WITH Harajuku Branch" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">59. 炸牛元村 原宿</span>
+            <span class="font-bold text-slate-800">炸牛元村 原宿</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=燒肉Happy" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">60. 燒肉Happy</span>
+            <span class="font-bold text-slate-800">燒肉Happy</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=一蘭 澀谷店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">61. 一蘭 澀谷店</span>
+            <span class="font-bold text-slate-800">一蘭 澀谷店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Afuri Shibuya Dōgenzaka" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">66. Afuri 澀谷道玄坂</span>
+            <span class="font-bold text-slate-800">Afuri 澀谷道玄坂</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=一蘭 淺草店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">67. 一蘭 淺草店</span>
+            <span class="font-bold text-slate-800">一蘭 淺草店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=一蘭 新宿中央東口店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">68. 一蘭 新宿中央東口店</span>
+            <span class="font-bold text-slate-800">一蘭 新宿中央東口店</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=NOMAD COFFEE TOKYO" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">70. NOMAD COFFEE TOKYO</span>
+            <span class="font-bold text-slate-800">NOMAD COFFEE TOKYO</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=八十八良葉舍 淺草" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">72. 八十八良葉舍 淺草</span>
+            <span class="font-bold text-slate-800">八十八良葉舍 淺草</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=鳴門鯛燒本舖 淺草新仲見世通店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">73. 鳴門鯛燒本舖 淺草</span>
+            <span class="font-bold text-slate-800">鳴門鯛燒本舖 淺草</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=豬排丼屋 瑞兆" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">74. 豬排丼屋 瑞兆</span>
+            <span class="font-bold text-slate-800">豬排丼屋 瑞兆</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=麵散" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">75. 麵散</span>
+            <span class="font-bold text-slate-800">麵散</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Kushiyaki Meat Man" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">76. Kushiyaki Meat Man</span>
+            <span class="font-bold text-slate-800">Kushiyaki Meat Man</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Cois Espresso Club Shinjuku Gyoemmae" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">80. Cois Espresso Club 新宿御苑前</span>
+            <span class="font-bold text-slate-800">Cois Espresso Club 新宿御苑前</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=5-9 Yonbancho, Chiyoda City, Tokyo 102-0081日本" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">81. No.4 (餐廳/咖啡)</span>
+            <span class="font-bold text-slate-800">No.4 (餐廳/咖啡)</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
         </div>
       </section>
 
       <!-- 3. 購物 / 樂器行 / 其他 -->
-      <section id="map-section-3" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-16">
+      <section id="map-section-3" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-24">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <h3 class="font-black text-xs text-slate-800 tracking-wider">購物 / 樂器行 / 其他 (Shopping & Music)</h3>
@@ -666,137 +677,137 @@
         <div class="grid grid-cols-1 gap-2 text-xs">
           <a href="https://maps.google.com/?q=日本〒170-0013 Tokyo, Toshima City, Higashiikebukuro, 1 Chome−50−35 池袋PARCO 別館P'PARCO B2F" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">6. Mandarake Nayuta</span>
+              <span class="font-bold text-slate-800">Mandarake Nayuta</span>
               <p class="text-[10px] text-purple-600 font-medium">二手公仔店 (池袋P'PARCO B2F)</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=BIGBOSS Ochanomizu Station Front Shop" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">8. BIGBOSS Ochanomizu</span>
+              <span class="font-bold text-slate-800">BIGBOSS Ochanomizu</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=4-chōme-28-5 Honjo, Sumida City, Tokyo 130-0004日本" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">11. 住宿地點</span>
+              <span class="font-bold text-slate-800">住宿地點</span>
               <p class="text-[10px] text-slate-400">墨田區本所</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Ishibashi Music - Shibuya" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">12. Ishibashi Music - Shibuya</span>
+              <span class="font-bold text-slate-800">Ishibashi Music - Shibuya</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=G-CLUB Shibuya" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">13. G-CLUB Shibuya</span>
+              <span class="font-bold text-slate-800">G-CLUB Shibuya</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=ESP Shibuya" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">14. ESP</span>
+              <span class="font-bold text-slate-800">ESP</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=池部樂器店 哈特曼吉他" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">15. 池部樂器店 哈特曼吉他</span>
+              <span class="font-bold text-slate-800">池部樂器店 哈特曼吉他</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=池部樂器店 哈特曼復古吉他" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">16. 池部樂器店 哈特曼復古吉他</span>
+              <span class="font-bold text-slate-800">池部樂器店 哈特曼復古吉他</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Nico-Nico Guitars" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">17. Nico-Nico Guitars</span>
+              <span class="font-bold text-slate-800">Nico-Nico Guitars</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Guitar Planet" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">18. Guitar Planet</span>
+              <span class="font-bold text-slate-800">Guitar Planet</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Shimokura Second Hands PART1" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">19. Shimokura Second Hands PART1</span>
+              <span class="font-bold text-slate-800">Shimokura Second Hands PART1</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=ESP guitar workshop" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">20. ESP guitar workshop</span>
+              <span class="font-bold text-slate-800">ESP guitar workshop</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Ishibashi Music - Ochanomizu Main Shop" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">21. Ishibashi Music - Ochanomizu</span>
+              <span class="font-bold text-slate-800">Ishibashi Music - Ochanomizu</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=下倉楽器 御茶之水本店" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">22. 下倉楽器 御茶之水本店</span>
+              <span class="font-bold text-slate-800">下倉楽器 御茶之水本店</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=御茶ノ水楽器センター" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">23. 御茶ノ水楽器センター</span>
+              <span class="font-bold text-slate-800">御茶ノ水楽器センター</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=谷口楽器" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">24. 谷口楽器</span>
+              <span class="font-bold text-slate-800">谷口楽器</span>
               <p class="text-[10px] text-slate-400">樂器行</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Nintendo Tokyo Shibuya Japan" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">26. Nintendo Tokyo (澀谷)</span>
+            <span class="font-bold text-slate-800">Nintendo Tokyo (澀谷)</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=小町通商店街" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">32. 小町通商店街</span>
+            <span class="font-bold text-slate-800">小町通商店街</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=NORA GINZA" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
             <div>
-              <span class="font-bold text-slate-800">69. NORA GINZA</span>
+              <span class="font-bold text-slate-800">NORA GINZA</span>
               <p class="text-[10px] text-pink-500 font-medium">剪頭髮</p>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=Kiraku-en" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">71. Kiraku-en</span>
+            <span class="font-bold text-slate-800">Kiraku-en</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=LE LABO 六本⽊" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <span class="font-bold text-slate-800">79. LE LABO ル ラボ 六本⽊</span>
+            <span class="font-bold text-slate-800">LE LABO ル ラボ 六本⽊</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
         </div>
