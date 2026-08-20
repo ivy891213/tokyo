@@ -413,7 +413,7 @@
   <div class="h-28"></div>
 
 
-  <!-- ==================== 項目列表區 (已內建 data-type 與 data-area) ==================== -->
+  <!-- ==================== 項目列表區 ==================== -->
   <div id="container-view-type" class="space-y-4">
 
     <!-- 1. 景點 / 拍照勝地 -->
@@ -522,7 +522,7 @@
 
   </div>
 
-  <!-- 搭配篩選功能的 JavaScript 邏輯 -->
+  <!-- 搭配獨立篩選與交集運作的 JavaScript 邏輯 -->
   <script>
     const activeFilters = {
         type: new Set(),
@@ -561,25 +561,37 @@
         const items = document.querySelectorAll('.map-item');
         const sections = document.querySelectorAll('#container-view-type section');
 
+        const hasTypeFilter = activeFilters.type.size > 0;
+        const hasAreaFilter = activeFilters.area.size > 0;
+
         items.forEach(item => {
             const itemType = item.getAttribute('data-type');
             const itemArea = item.getAttribute('data-area');
 
-            const matchType = (activeFilters.type.size === 0) || activeFilters.type.has(itemType);
-            const matchArea = (activeFilters.area.size === 0) || activeFilters.area.has(itemArea);
+            // 判斷是否符合上方屬性
+            const matchType = !hasTypeFilter || activeFilters.type.has(itemType);
+            // 判斷是否符合下方地區
+            const matchArea = !hasAreaFilter || activeFilters.area.has(itemArea);
 
-            // 上下兩列採 AND 邏輯交集篩選
-            if (matchType && matchArea) {
-                item.style.display = 'flex';
+            // 核心篩選概念：
+            // 1. 如果「兩邊都沒選」，全部顯示。
+            // 2. 如果「兩邊都有選」，必須同時符合兩邊（交集）。
+            // 3. 如果「只有一邊有選」，只要符合該有選的一邊即可。
+            let showItem = false;
+            if (!hasTypeFilter && !hasAreaFilter) {
+                showItem = true;
+            } else if (hasTypeFilter && hasAreaFilter) {
+                showItem = matchType && matchArea;
             } else {
-                item.style.display = 'none';
+                // 只有選單邊時，以該邊的選取項目為準
+                showItem = (hasTypeFilter ? matchType : true) && (hasAreaFilter ? matchArea : true);
             }
+
+            item.style.display = showItem ? 'flex' : 'none';
         });
 
-        // 檢查如果某個大區塊底下的項目全被隱藏，可以視需求把整個區塊隱藏避免留白（選填）
+        // 區塊自動隱藏（當該區塊內沒有任何可見項目時隱藏整個 section）
         sections.forEach(section => {
-            const visibleItems = section.querySelectorAll('.map-item[style*="display: flex"], .map-item:not([style*="display: none"])');
-            // 由於預設行內沒寫 display，稍微判斷一下：
             let hasVisible = false;
             section.querySelectorAll('.map-item').forEach(el => {
                 if (el.style.display !== 'none') hasVisible = true;
