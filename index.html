@@ -362,18 +362,21 @@
 
       <div id="timeline-container" class="space-y-4"></div>
     </div>
+
 <!-- MAP PAGE -->
 <div id="page-map" class="page-view hidden space-y-4 pb-20">
   
-  <!-- 頂部釘選區塊：雙維度單選篩選列 -->
+  <!-- 頂部絕對釘選區塊：雙維度單選篩選列 -->
   <div class="fixed top-16 left-0 right-0 z-30 px-3 max-w-md mx-auto bg-transparent">
     <div class="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 shadow-md border border-slate-200 flex flex-col gap-2">
       
       <!-- 標題列與清除按鈕 -->
       <div class="flex items-center justify-between gap-1 border-b border-slate-100 pb-1.5">
-        <span class="text-xs font-black text-slate-700 px-1 flex items-center gap-1">
-          <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 地圖雙維度篩選 (單選)
-        </span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-black text-slate-700 px-1 flex items-center gap-1">
+            <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 地圖雙維度篩選 (單選)
+          </span>
+        </div>
         <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-400 hover:text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md transition">清除篩選</button>
       </div>
 
@@ -406,15 +409,15 @@
     </div>
   </div>
 
-  <!-- 頂部留白 -->
+  <!-- 頂部留白，避免內容被固定導覽列遮擋 -->
   <div class="h-28"></div>
 
-  <!-- 浮動新增按鈕 (右下角) -->
+  <!-- 懸浮新增按鈕 (右下角) -->
   <button onclick="toggleModal(true)" class="fixed bottom-24 right-6 z-40 bg-[#008BB0] text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-[#007a9b] transition">
     <i class="fa-solid fa-plus"></i>
   </button>
 
-  <!-- ==================== 項目列表區 ==================== -->
+  <!-- ==================== 項目列表區 (內容完整保留) ==================== -->
   <div id="container-view-type" class="space-y-4">
 
     <!-- 1. 景點 / 拍照勝地 -->
@@ -423,7 +426,7 @@
         <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
         <h3 class="font-black text-xs text-slate-800 tracking-wider">景點 / 拍照勝地 / 公園 (Sightseeing)</h3>
       </div>
-      <div class="map-item-list grid grid-cols-1 gap-2 text-xs">
+      <div class="grid grid-cols-1 gap-2 text-xs map-item-list">
         <a href="https://maps.google.com/?q=東京迪士尼樂園" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">東京迪士尼樂園</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=東京鐵塔" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">東京鐵塔</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=澀谷SKY" target="_blank" data-type="sightseeing" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">澀谷 SKY</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
@@ -463,7 +466,7 @@
         <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
         <h3 class="font-black text-xs text-slate-800 tracking-wider">美食 / 餐廳 / 咖啡廳 (Food & Drink)</h3>
       </div>
-      <div class="map-item-list grid grid-cols-1 gap-2 text-xs">
+      <div class="grid grid-cols-1 gap-2 text-xs map-item-list">
         <a href="https://maps.google.com/?q=五代目 花山烏冬 銀座店" target="_blank" data-type="food" data-area="ginza" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">五代目 花山烏冬 銀座店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=五代目 花山烏冬 日本橋店" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">五代目 花山烏冬 日本橋店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=bills 七里ヶ浜" target="_blank" data-type="food" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">bills 七里ヶ浜</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
@@ -503,7 +506,7 @@
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
         <h3 class="font-black text-xs text-slate-800 tracking-wider">購物 / 樂器行 / 其他 (Shopping & Music)</h3>
       </div>
-      <div class="map-item-list grid grid-cols-1 gap-2 text-xs">
+      <div class="grid grid-cols-1 gap-2 text-xs map-item-list">
         <a href="https://maps.google.com/?q=Mandarake Nayuta" target="_blank" data-type="shopping" data-area="ikebukuro" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Mandarake Nayuta</span><p class="text-[10px] text-purple-600 font-medium">二手公仔店 (池袋P'PARCO B2F)</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=BIGBOSS Ochanomizu" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">BIGBOSS Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=墨田區本所" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">住宿地點</span><p class="text-[10px] text-slate-400">墨田區本所</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
@@ -523,34 +526,37 @@
 
   </div>
 
-  <!-- 新增地點的 Modal (彈出視窗) -->
+  <!-- 新增地點的彈出視窗 (Modal) -->
   <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
-      <h3 class="font-bold text-base text-slate-800">新增地圖地點</h3>
-      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 class="font-black text-sm text-slate-800">新增地圖地點</h3>
+        <button onclick="toggleModal(false)" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
       <div class="space-y-3 text-xs">
         <div>
           <label class="block font-bold text-slate-500 mb-1">地點名稱</label>
-          <input type="text" id="input-name" placeholder="例如：晴空塔" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
-        </div>
-        
-        <div>
-          <label class="block font-bold text-slate-500 mb-1">Google Maps 連結</label>
-          <input type="text" id="input-link" placeholder="貼上網址..." class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
+          <input type="text" id="input-name" placeholder="例如：晴空塔" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
         </div>
 
         <div>
-          <label class="block font-bold text-slate-500 mb-1">屬性分類 (決定放在哪個大區塊)</label>
-          <select id="input-type" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
-            <option value="sightseeing">景點 / 拍照</option>
-            <option value="food">美食 / 餐廳 / 咖啡</option>
-            <option value="shopping">購物 / 樂器行</option>
+          <label class="block font-bold text-slate-500 mb-1">Google Maps 連結</label>
+          <input type="text" id="input-link" placeholder="貼上網址..." class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-500 mb-1">屬性分類 (上方列)</label>
+          <select id="input-type" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+            <option value="sightseeing">景點/拍照</option>
+            <option value="food">美食/咖啡</option>
+            <option value="shopping">購物/樂器</option>
           </select>
         </div>
 
         <div>
-          <label class="block font-bold text-slate-500 mb-1">地區 / 車站 (用於下方列篩選)</label>
-          <select id="input-area" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
+          <label class="block font-bold text-slate-500 mb-1">地區分類 (下方列)</label>
+          <select id="input-area" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
             <option value="shibuya">澀谷</option>
             <option value="asakusa">淺草</option>
             <option value="shinjuku">新宿</option>
@@ -559,14 +565,14 @@
             <option value="ikebukuro">池袋</option>
             <option value="fuji">富士山區</option>
             <option value="kamakura">鐮倉區</option>
-            <option value="other">其他 / 住宿</option>
+            <option value="other">其他/住宿</option>
           </select>
         </div>
       </div>
-      
+
       <div class="flex gap-2 pt-2">
-        <button onclick="toggleModal(false)" class="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs">取消</button>
-        <button onclick="saveNewItem()" class="flex-1 py-2.5 bg-[#008BB0] text-white rounded-xl font-bold text-xs">完成新增</button>
+        <button onclick="toggleModal(false)" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs">取消</button>
+        <button onclick="saveNewItem()" class="flex-1 py-2 bg-[#008BB0] text-white rounded-xl font-bold text-xs shadow-sm">完成新增</button>
       </div>
     </div>
   </div>
@@ -640,12 +646,12 @@
         });
     }
 
-    // Modal 控制
+    // 控制彈出視窗開關
     function toggleModal(show) {
       document.getElementById('add-modal').classList.toggle('hidden', !show);
     }
 
-    // 新增項目並自動分類
+    // 儲存新地點並自動歸類
     function saveNewItem() {
       const name = document.getElementById('input-name').value.trim();
       const link = document.getElementById('input-link').value.trim();
@@ -657,7 +663,7 @@
         return;
       }
 
-      // 建立新項目節點
+      // 建立新的 DOM 元素
       const newItem = document.createElement('a');
       newItem.href = link;
       newItem.target = "_blank";
@@ -666,23 +672,23 @@
       newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
       newItem.innerHTML = `<span class="font-bold text-slate-800">${name}</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
 
-      // 自動歸類插入對應的 section 內
-      const targetContainer = document.querySelector(`#map-type-${type} .map-item-list`);
-      if (targetContainer) {
-        targetContainer.appendChild(newItem);
+      // 自動插入至對應的屬性區塊中
+      const targetSectionList = document.querySelector(`#map-type-${type} .map-item-list`);
+      if (targetSectionList) {
+        targetSectionList.appendChild(newItem);
       }
+
+      // 重新套用當前篩選，確保新項目如果符合條件會立刻顯示
+      applyMapFilters();
 
       // 關閉視窗並清空欄位
       toggleModal(false);
       document.getElementById('input-name').value = '';
       document.getElementById('input-link').value = '';
-
-      // 重新套用當前篩選，確保新項目顯示正確
-      applyMapFilters();
     }
   </script>
-</div>
 
+</div>
     
     <!-- MORE PAGE -->
     <div id="page-more" class="page-view hidden space-y-4">
