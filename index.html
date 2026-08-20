@@ -652,7 +652,7 @@
 
   </div>
 
-  <!-- JavaScript 邏輯：單選篩選 + 內嵌表單新增並自動分類 -->
+    <!-- JavaScript 邏輯：單選篩選 + 內嵌表單新增並自動分類 -->
   <script>
     const currentFilter = {
         type: null,
@@ -698,15 +698,13 @@
             const itemArea = item.getAttribute('data-area');
 
             const matchType = !hasTypeFilter || (itemType === currentFilter.type);
-            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
+            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area || itemArea === 'other');
 
             let showItem = false;
             if (!hasTypeFilter && !hasAreaFilter) {
                 showItem = true;
-            } else if (hasTypeFilter && hasAreaFilter) {
-                showItem = matchType && matchArea;
             } else {
-                showItem = (hasTypeFilter ? matchType : true) && (hasAreaFilter ? matchArea : true);
+                showItem = matchType && matchArea;
             }
 
             item.style.display = showItem ? 'flex' : 'none';
@@ -763,6 +761,7 @@
       document.getElementById('input-link').value = '';
     }
   </script>
+
 
 </div>
 
