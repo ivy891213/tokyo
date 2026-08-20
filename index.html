@@ -366,22 +366,24 @@
 <!-- MAP PAGE -->
     <div id="page-map" class="page-view hidden space-y-4">
       
-      <!-- 頂部說明 -->
-      <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-1">
-        <div class="border-b border-slate-100 pb-2">
-          <h2 class="font-black text-xs text-slate-800 tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 全面收藏：81個景點、美食與購物清單
-          </h2>
-          <p class="text-[10px] text-slate-400 mt-0.5">點擊各項目可直接開啟 Google 地圖，隨時查看附近可以吃或逛的店家！</p>
+      <!-- 頂部置頂導覽列 (與每日行程頁面保持一致，固定在上方) -->
+      <div class="sticky top-0 z-20 bg-slate-50/90 backdrop-blur-md pt-1 pb-3 -mx-2 px-2">
+        <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-100 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
+          <div class="flex items-center gap-1.5 whitespace-nowrap">
+            <span class="text-xs font-black text-slate-700 px-2 flex items-center gap-1">
+              <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 81個地標
+            </span>
+          </div>
+          <div class="flex items-center gap-1 text-[11px] font-bold">
+            <a href="#map-section-1" class="px-3 py-1.5 bg-sky-50 text-sky-700 rounded-xl hover:bg-sky-100 transition">景點</a>
+            <a href="#map-section-2" class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 transition">美食</a>
+            <a href="#map-section-3" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition">購物/樂器</a>
+          </div>
         </div>
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-[11px] text-amber-900 space-y-1 mt-2">
-          <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 台場煙火特別提醒：</p>
-          <p class="text-[10px] opacity-90">預計 12/5（六）台場海濱公園有冬季台場彩虹煙火大會，傍晚非常適合去散步看夕陽並欣賞夜間煙火！</p>
-        </div>
-      </section>
+      </div>
 
       <!-- 1. 景點 / 拍照勝地 -->
-      <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+      <section id="map-section-1" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-16">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
           <h3 class="font-black text-xs text-slate-800 tracking-wider">景點 / 拍照勝地 / 公園 (Sightseeing)</h3>
@@ -412,10 +414,7 @@
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=御台場海濱公園" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
-            <div>
-              <span class="font-bold text-slate-800">25. 御台場海濱公園</span>
-              <p class="text-[10px] text-amber-600 font-medium">預計12/5有冬季彩虹煙火大會</p>
-            </div>
+            <span class="font-bold text-slate-800">25. 御台場海濱公園</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>
           </a>
           <a href="https://maps.google.com/?q=鐮倉高校前" target="_blank" class="bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition">
@@ -523,7 +522,7 @@
       </section>
 
       <!-- 2. 美食 / 餐廳 / 咖啡廳 -->
-      <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+      <section id="map-section-2" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-16">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
           <h3 class="font-black text-xs text-slate-800 tracking-wider">美食 / 餐廳 / 咖啡廳 (Food & Drink)</h3>
@@ -658,8 +657,8 @@
         </div>
       </section>
 
-      <!-- 3. 購物 / 樂器行 / 住宿等 -->
-      <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+      <!-- 3. 購物 / 樂器行 / 其他 -->
+      <section id="map-section-3" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3 scroll-mt-16">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <h3 class="font-black text-xs text-slate-800 tracking-wider">購物 / 樂器行 / 其他 (Shopping & Music)</h3>
@@ -804,6 +803,7 @@
       </section>
 
     </div>
+    
     <!-- MORE PAGE -->
     <div id="page-more" class="page-view hidden space-y-4">
       <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
