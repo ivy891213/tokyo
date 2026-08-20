@@ -19,7 +19,7 @@
   <!-- Firebase 邏輯與功能 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
@@ -41,22 +41,6 @@
         document.getElementById(`nav-${pageId}`).classList.replace('text-slate-400', 'text-[#2C4A5A]');
     }
 
-    // 行程天數切換函式
-    window.switchDay = function(dayNum) {
-        document.querySelectorAll('.day-content').forEach(d => d.classList.add('hidden'));
-        document.getElementById(`day-${dayNum}-content`).classList.remove('hidden');
-        
-        document.querySelectorAll('.day-tab').forEach(t => {
-            t.classList.remove('bg-[#2C4A5A]', 'text-white', 'shadow-sm');
-            t.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-100');
-        });
-        const activeTab = document.getElementById(`day-tab-${dayNum}`);
-        if(activeTab) {
-            activeTab.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-100');
-            activeTab.classList.add('bg-[#2C4A5A]', 'text-white', 'shadow-sm');
-        }
-    }
-
     // 新增記帳資料到 Firebase
     window.saveExpense = function() {
         const item = document.getElementById("expenseItem").value;
@@ -75,18 +59,18 @@
             time: new Date().toLocaleString([], {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'})
         });
 
+        // 清空輸入框
         document.getElementById("expenseItem").value = "";
         document.getElementById("expenseAmount").value = "";
     }
 
-    // 即時監聽記帳資料
+    // 即時監聽記帳資料並計算總金額與分帳
     onValue(ref(db, 'tokyo_expenses'), (snapshot) => {
         const list = document.getElementById("expense-list");
         const totalSpan = document.getElementById("total-amount");
         const yiruTotalSpan = document.getElementById("yiru-total");
         const chuxuanTotalSpan = document.getElementById("chuxuan-total");
         
-        if (!list) return;
         list.innerHTML = "";
         const data = snapshot.val();
         
@@ -111,7 +95,7 @@
             const payerBadgeColor = exp.payer === "奕柔" ? "bg-pink-100 text-pink-600" : "bg-blue-100 text-blue-600";
 
             list.innerHTML += `
-                <div class="bg-white p-3 rounded-xl shadow-sm flex justify-between items-center text-xs border border-slate-100">
+                <div class="bg-white p-3 rounded-xl shadow-sm flex justify-between items-center text-xs">
                     <div>
                         <span class="px-2 py-0.5 rounded-full font-bold ${payerBadgeColor} mr-1">${exp.payer}</span>
                         <span class="font-bold text-slate-700">${exp.item}</span>
@@ -166,78 +150,16 @@
       </section>
 
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="text-xs font-bold text-slate-700 mb-2"><i class="fa-solid fa-circle-info text-[#2C4A5A] mr-1"></i> 旅程倒數與小幫手</h3>
-        <p class="text-[11px] text-slate-500 leading-relaxed">這是一份為 16 天東京之旅量身打造的專屬網頁。點擊下方導覽列隨時切換「16天完整行程」與「雙人雲端記帳」。</p>
+        <h3 class="text-xs font-bold text-slate-700 mb-2"><i class="fa-solid fa-circle-info text-[#2C4A5A] mr-1"></i> 歡迎使用生日之旅小幫手</h3>
+        <p class="text-[11px] text-slate-500 leading-relaxed">點擊下方導覽列可以切換「行程」與「即時記帳」。所有記帳與花費都會自動同步到雲端，兩人手機隨時看得到最新總金額！</p>
       </div>
     </div>
 
-    <!-- 2. 行程頁 (Day 1 ~ Day 16 快速切換) -->
+    <!-- 2. 行程頁 (預留空間) -->
     <div id="page-timeline" class="page-view space-y-3">
-      <h2 class="font-bold text-sm text-slate-700 px-1"><i class="fa-solid fa-calendar-days text-[#2C4A5A] mr-1"></i> 16天完整行程規劃</h2>
-      
-      <!-- 天數快速選單 (橫向捲動) -->
-      <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
-        <button onclick="switchDay(1)" id="day-tab-1" class="day-tab bg-[#2C4A5A] text-white px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm">Day 1</button>
-        <button onclick="switchDay(2)" id="day-tab-2" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 2</button>
-        <button onclick="switchDay(3)" id="day-tab-3" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 3</button>
-        <button onclick="switchDay(4)" id="day-tab-4" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 4</button>
-        <button onclick="switchDay(5)" id="day-tab-5" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 5</button>
-        <button onclick="switchDay(6)" id="day-tab-6" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 6</button>
-        <button onclick="switchDay(7)" id="day-tab-7" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 7</button>
-        <button onclick="switchDay(8)" id="day-tab-8" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 8</button>
-        <button onclick="switchDay(9)" id="day-tab-9" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 9</button>
-        <button onclick="switchDay(10)" id="day-tab-10" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 10</button>
-        <button onclick="switchDay(11)" id="day-tab-11" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 11</button>
-        <button onclick="switchDay(12)" id="day-tab-12" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 12</button>
-        <button onclick="switchDay(13)" id="day-tab-13" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 13</button>
-        <button onclick="switchDay(14)" id="day-tab-14" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 14</button>
-        <button onclick="switchDay(15)" id="day-tab-15" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 15</button>
-        <button onclick="switchDay(16)" id="day-tab-16" class="day-tab bg-white text-slate-600 border border-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Day 16</button>
-      </div>
-
-      <!-- 每日行程內容區塊 -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-        
-        <!-- Day 1 -->
-        <div id="day-1-content" class="day-content space-y-2">
-          <div class="flex justify-between items-center border-b pb-2">
-            <span class="font-black text-slate-800 text-sm">Day 1：抵達東京與入住</span>
-            <span class="text-[10px] text-slate-400 font-bold">11/28 (五)</span>
-          </div>
-          <ul class="text-xs space-y-2 text-slate-600">
-            <li class="flex items-start gap-2"><i class="fa-solid fa-plane-arrival text-[#2C4A5A] mt-0.5"></i> 搭機前往東京，抵達後前往飯店辦理入住。</li>
-            <li class="flex items-start gap-2"><i class="fa-solid fa-utensils text-[#2C4A5A] mt-0.5"></i> 晚餐：附近商圈輕鬆覓食或拉麵。</li>
-          </ul>
-        </div>
-
-        <!-- Day 2 -->
-        <div id="day-2-content" class="day-content space-y-2 hidden">
-          <div class="flex justify-between items-center border-b pb-2">
-            <span class="font-black text-slate-800 text-sm">Day 2：市區漫遊與慶生</span>
-            <span class="text-[10px] text-slate-400 font-bold">11/29 (六)</span>
-          </div>
-          <ul class="text-xs space-y-2 text-slate-600">
-            <li class="flex items-start gap-2"><i class="fa-solid fa-cake-candles text-amber-500 mt-0.5"></i> 生日重頭戲：精選景點與慶生晚餐。</li>
-            <li class="flex items-start gap-2"><i class="fa-solid fa-bag-shopping text-[#2C4A5A] mt-0.5"></i> 下午逛街與拍照留念。</li>
-          </ul>
-        </div>
-
-        <!-- Day 3 ~ 16 預設樣板 (你可以隨時替換文字) -->
-        <div id="day-3-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 3 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-4-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 4 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-5-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 5 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-6-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 6 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-7-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 7 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-8-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 8 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-9-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 9 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-10-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 10 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-11-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 11 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-12-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 12 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-13-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 13 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-14-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 14 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-15-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 15 行程安排</div><p class="text-xs text-slate-500">詳細景點與美食規劃中...</p></div>
-        <div id="day-16-content" class="day-content space-y-2 hidden"><div class="font-black text-sm border-b pb-2">Day 16：賦歸溫暖的家</div><p class="text-xs text-slate-500">收拾行李，前往機場搭機返台。</p></div>
-
+      <h2 class="font-bold text-sm text-slate-700 px-1"><i class="fa-solid fa-calendar-days text-[#2C4A5A] mr-1"></i> Day 1 ~ Day 16 行程總覽</h2>
+      <div class="bg-white p-5 rounded-2xl shadow-sm text-center text-slate-400 text-xs py-10">
+        行程資料準備中，隨時可以把它們塞進來！
       </div>
     </div>
 
@@ -245,6 +167,7 @@
     <div id="page-expense" class="page-view space-y-4">
       <h2 class="font-bold text-sm text-slate-700 px-1"><i class="fa-solid fa-wallet text-amber-600 mr-1"></i> 雙人即時共享記帳</h2>
 
+      <!-- 總金額與統計卡片 -->
       <div class="grid grid-cols-3 gap-2 text-center">
         <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
           <div class="text-[10px] text-slate-400 font-bold">總支出</div>
@@ -260,6 +183,7 @@
         </div>
       </div>
 
+      <!-- 新增記帳表單 -->
       <div class="bg-white p-4 rounded-2xl shadow-sm space-y-3 border border-slate-100">
         <div class="text-xs font-bold text-slate-700">新增一筆花費</div>
         <div class="grid grid-cols-2 gap-2">
@@ -277,9 +201,12 @@
         </div>
       </div>
 
+      <!-- 記帳明細列表 -->
       <div class="space-y-2">
         <div class="text-xs font-bold text-slate-700 px-1">消費明細記錄</div>
-        <div id="expense-list" class="space-y-2"></div>
+        <div id="expense-list" class="space-y-2">
+          <!-- 這裡會由 Firebase 動態填入 -->
+        </div>
       </div>
     </div>
 
