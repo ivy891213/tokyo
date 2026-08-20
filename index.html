@@ -525,6 +525,7 @@
       ]}
     ];
 
+    // 確保 checked 預設為 false 避免項目被誤畫刪除線
     let defaultPrepList = [
       { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
       { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
@@ -559,7 +560,7 @@
         if (val) {
           itineraryData = val;
         } else {
-          itineraryData = defaultPrepList ? defaultItinerary : [];
+          itineraryData = defaultItinerary;
           db.ref('itinerary').set(defaultItinerary);
         }
         renderTimeline();
@@ -835,10 +836,11 @@
       container.innerHTML = '';
       prepList.forEach((item) => {
         const row = document.createElement('div');
+        // 修正樣式判斷：checked 為 true 才加上刪除線與灰色背景
         row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
         row.innerHTML = `
           <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="togglePrepItem(${item.id})" class="w-4 h-4 rounded text-amber-500 focus:ring-0 cursor-pointer">
-          <span class="font-bold flex-1 text-xs cursor-pointer ${item.checked ? 'line-through' : ''}" onclick="togglePrepItem(${item.id})">${item.text}</span>
+          <span class="font-bold flex-1 text-xs cursor-pointer ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}" onclick="togglePrepItem(${item.id})">${item.text}</span>
           <button onclick="deletePrepItem(${item.id})" class="text-rose-400 hover:text-rose-600 text-xs px-1">
             <i class="fa-solid fa-trash-can"></i>
           </button>
@@ -875,7 +877,7 @@
         row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
         row.innerHTML = `
           <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleTicketItem(${item.id})" class="w-4 h-4 rounded text-emerald-500 focus:ring-0 cursor-pointer">
-          <span class="font-bold flex-1 text-xs cursor-pointer ${item.checked ? 'line-through' : ''}" onclick="toggleTicketItem(${item.id})">${item.text}</span>
+          <span class="font-bold flex-1 text-xs cursor-pointer ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}" onclick="toggleTicketItem(${item.id})">${item.text}</span>
           <button onclick="deleteTicketItem(${item.id})" class="text-rose-400 hover:text-rose-600 text-xs px-1">
             <i class="fa-solid fa-trash-can"></i>
           </button>
