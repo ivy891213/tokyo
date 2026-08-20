@@ -366,92 +366,324 @@
 <!-- MAP PAGE -->
 <div id="page-map" class="page-view hidden space-y-4 pb-20">
   
-  <!-- 頂部釘選區塊 -->
+  <!-- 頂部釘選區塊：雙維度單選篩選列 -->
   <div class="fixed top-16 left-0 right-0 z-30 px-3 max-w-md mx-auto bg-transparent">
     <div class="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 shadow-md border border-slate-200 flex flex-col gap-2">
-      <!-- 篩選列... (與之前相同) -->
+      
+      <!-- 標題列與清除按鈕 -->
       <div class="flex items-center justify-between gap-1 border-b border-slate-100 pb-1.5">
-         <span class="text-xs font-black text-slate-700">地圖篩選 (單選)</span>
-         <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">清除</button>
+        <span class="text-xs font-black text-slate-700 px-1 flex items-center gap-1">
+          <i class="fa-solid fa-map-location-dot text-[#008BB0]"></i> 地圖雙維度篩選 (單選)
+        </span>
+        <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-400 hover:text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md transition">清除篩選</button>
       </div>
-      <!-- 篩選按鈕列 (維持不變...) -->
+
+      <!-- 上方列：依屬性篩選 (單選) -->
+      <div>
+        <div class="text-[10px] font-bold text-slate-400 mb-1">🍽️ 上方列：屬性篩選</div>
+        <div id="filter-types" class="flex items-center gap-1 overflow-x-auto text-[11px] font-bold pb-0.5 scrollbar-none">
+          <button onclick="selectFilter('type', 'sightseeing', this)" class="filter-btn-type px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="sightseeing">景點/拍照</button>
+          <button onclick="selectFilter('type', 'food', this)" class="filter-btn-type px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="food">美食/咖啡</button>
+          <button onclick="selectFilter('type', 'shopping', this)" class="filter-btn-type px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shopping">購物/樂器</button>
+        </div>
+      </div>
+
+      <!-- 下方列：依地區/車站篩選 (單選) -->
+      <div class="border-t border-slate-100 pt-1.5">
+        <div class="text-[10px] font-bold text-slate-400 mb-1">📍 下方列：地區/車站篩選</div>
+        <div id="filter-areas" class="flex items-center gap-1 overflow-x-auto text-[11px] font-bold pb-0.5 scrollbar-none">
+          <button onclick="selectFilter('area', 'shibuya', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shibuya">澀谷</button>
+          <button onclick="selectFilter('area', 'asakusa', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="asakusa">淺草</button>
+          <button onclick="selectFilter('area', 'shinjuku', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shinjuku">新宿</button>
+          <button onclick="selectFilter('area', 'ginza', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ginza">銀座</button>
+          <button onclick="selectFilter('area', 'ochanomizu', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ochanomizu">御茶之水</button>
+          <button onclick="selectFilter('area', 'ikebukuro', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ikebukuro">池袋</button>
+          <button onclick="selectFilter('area', 'fuji', this)" class="filter-btn-area px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="fuji">富士山區</button>
+          <button onclick="selectFilter('area', 'kamakura', this)" class="filter-btn-area px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="kamakura">鐮倉區</button>
+          <button onclick="selectFilter('area', 'other', this)" class="filter-btn-area px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="other">其他/住宿</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
+  <!-- 頂部留白 -->
   <div class="h-28"></div>
 
-  <!-- 新增按鈕 (懸浮於右下角) -->
+  <!-- 浮動新增按鈕 (右下角) -->
   <button onclick="toggleModal(true)" class="fixed bottom-24 right-6 z-40 bg-[#008BB0] text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-[#007a9b] transition">
     <i class="fa-solid fa-plus"></i>
   </button>
 
-  <!-- 項目列表區 -->
+  <!-- ==================== 項目列表區 ==================== -->
   <div id="container-view-type" class="space-y-4">
-    <!-- 區塊內容 (維持原樣，但需確保 section 有正確 ID) -->
-    <section id="type-sightseeing" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
-        <h3 class="font-black text-xs text-slate-800 border-b border-slate-100 pb-2">景點 / 拍照</h3>
-        <div class="map-item-list grid grid-cols-1 gap-2 text-xs"></div>
+
+    <!-- 1. 景點 / 拍照勝地 -->
+    <section id="map-type-sightseeing" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+      <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+        <h3 class="font-black text-xs text-slate-800 tracking-wider">景點 / 拍照勝地 / 公園 (Sightseeing)</h3>
+      </div>
+      <div class="map-item-list grid grid-cols-1 gap-2 text-xs">
+        <a href="https://maps.google.com/?q=東京迪士尼樂園" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">東京迪士尼樂園</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=東京鐵塔" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">東京鐵塔</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=澀谷SKY" target="_blank" data-type="sightseeing" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">澀谷 SKY</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=秋葉原駅" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">秋葉原駅</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=淺草寺" target="_blank" data-type="sightseeing" data-area="asakusa" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">淺草寺</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=東京晴空塔" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">東京晴空塔</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=御台場海濱公園" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">御台場海濱公園</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=鐮倉高校前" target="_blank" data-type="sightseeing" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">鐮倉高校前</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Shichirigahama Beach" target="_blank" data-type="sightseeing" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Shichirigahama Beach</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=鶴岡八幡宮" target="_blank" data-type="sightseeing" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">鶴岡八幡宮</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=佐助稻荷神社" target="_blank" data-type="sightseeing" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">佐助稻荷神社</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=赤羽橋" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">赤羽橋</span><p class="text-[10px] text-slate-400">拍東京鐵塔好地點</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Yamanakako" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">THE PARK (山中湖)</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Shiratori Beach" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Shiratori Beach</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Yamanakakohirano" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Yamanakakohirano</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=平野之濱" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">平野之濱</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=長池親水公園" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">長池親水公園</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=新倉富士淺間神社" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">新倉富士淺間神社</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=下吉田" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">下吉田</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=中央道下吉田" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">中央道下吉田</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=富士山夢之大橋" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">富士山夢之大橋</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=日川時計店" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">日川時計店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=富士山山中湖 富士山飯店入口" target="_blank" data-type="sightseeing" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">富士山山中湖（富士山飯店入口）</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=池袋" target="_blank" data-type="sightseeing" data-area="ikebukuro" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">池袋</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Shinjuku Station" target="_blank" data-type="sightseeing" data-area="shinjuku" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Shinjuku Station</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=京島南公園" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">京島南公園</span><p class="text-[10px] text-slate-400">拍晴空塔的點</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=teamLab" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">teamLab Borderless</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=六本木新城展望台" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">六本木新城展望台 東京城市景觀</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=KALEDOTOWER" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">KALEDOTOWER</span><p class="text-[10px] text-slate-400">拍東京鐵塔地點</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=國立新美術館" target="_blank" data-type="sightseeing" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">國立新美術館</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+      </div>
     </section>
-    <section id="type-food" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
-        <h3 class="font-black text-xs text-slate-800 border-b border-slate-100 pb-2">美食 / 咖啡</h3>
-        <div class="map-item-list grid grid-cols-1 gap-2 text-xs"></div>
+
+    <!-- 2. 美食 / 餐廳 / 咖啡廳 -->
+    <section id="map-type-food" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+      <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+        <h3 class="font-black text-xs text-slate-800 tracking-wider">美食 / 餐廳 / 咖啡廳 (Food & Drink)</h3>
+      </div>
+      <div class="map-item-list grid grid-cols-1 gap-2 text-xs">
+        <a href="https://maps.google.com/?q=五代目 花山烏冬 銀座店" target="_blank" data-type="food" data-area="ginza" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">五代目 花山烏冬 銀座店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=五代目 花山烏冬 日本橋店" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">五代目 花山烏冬 日本橋店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=bills 七里ヶ浜" target="_blank" data-type="food" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">bills 七里ヶ浜</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Windera Cafe Shichirigahama" target="_blank" data-type="food" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Windera Cafe Shichirigahama</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Cafe Yoridocoro" target="_blank" data-type="food" data-area="kamakura" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Cafe Yoridocoro</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Sasaya Asakusa" target="_blank" data-type="food" data-area="asakusa" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Sasaya Asakusa</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=TsuruTonTan SHIBUYA" target="_blank" data-type="food" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">TsuruTonTan 澀谷</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=羅森便利商店 河口湖車站前店" target="_blank" data-type="food" data-area="fuji" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">羅森便利商店 河口湖車站前店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=燒肉 Aburu 大塚店" target="_blank" data-type="food" data-area="ikebukuro" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">燒肉 Aburu。大塚店</span><p class="text-[10px] text-rose-500 font-medium">前男友燒肉店</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Iruca Tokyo Roppongi" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Iruca Tokyo Roppongi</span><p class="text-[10px] text-amber-600 font-medium">米其林拉麵</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=EDW yellow Shibuya" target="_blank" data-type="food" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">EDW yellow Shibuya</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=淺草今半 國際通本店" target="_blank" data-type="food" data-area="asakusa" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">淺草今半 國際通本店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=日本橋炸豬排 一 HAJIME" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">日本橋炸豬排 一 HAJIME</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Aidaya" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Aidaya</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=黑毛和牛壽喜燒 日本橋一里" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">黑毛和牛壽喜燒 日本橋一里</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Kanimatsuri Crab Restaurant" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Kanimatsuri Crab Restaurant</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Gyukatsu Motomura WITH Harajuku Branch" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">炸牛元村 原宿</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=燒肉Happy" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">燒肉Happy</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=一蘭 澀谷店" target="_blank" data-type="food" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">一蘭 澀谷店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Afuri Shibuya Dōgenzaka" target="_blank" data-type="food" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Afuri 澀谷道玄坂</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=一蘭 淺草店" target="_blank" data-type="food" data-area="asakusa" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">一蘭 淺草店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=一蘭 新宿中央東口店" target="_blank" data-type="food" data-area="shinjuku" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">一蘭 新宿中央東口店</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=NOMAD COFFEE TOKYO" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">NOMAD COFFEE TOKYO</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=八十八良葉舍 淺草" target="_blank" data-type="food" data-area="asakusa" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">八十八良葉舍 淺草</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=鳴門鯛燒本舖 淺草" target="_blank" data-type="food" data-area="asakusa" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">鳴門鯛燒本舖 淺草</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=豬排丼屋 瑞兆" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">豬排丼屋 瑞兆</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=麵散" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">麵散</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Kushiyaki Meat Man" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Kushiyaki Meat Man</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Cois Espresso Club 新宿御苑前" target="_blank" data-type="food" data-area="shinjuku" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">Cois Espresso Club 新宿御苑前</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=No.4" target="_blank" data-type="food" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><span class="font-bold text-slate-800">No.4 (餐廳/咖啡)</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+      </div>
     </section>
-    <section id="type-shopping" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
-        <h3 class="font-black text-xs text-slate-800 border-b border-slate-100 pb-2">購物 / 樂器</h3>
-        <div class="map-item-list grid grid-cols-1 gap-2 text-xs"></div>
+
+    <!-- 3. 購物 / 樂器行 / 其他 -->
+    <section id="map-type-shopping" class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
+      <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <h3 class="font-black text-xs text-slate-800 tracking-wider">購物 / 樂器行 / 其他 (Shopping & Music)</h3>
+      </div>
+      <div class="map-item-list grid grid-cols-1 gap-2 text-xs">
+        <a href="https://maps.google.com/?q=Mandarake Nayuta" target="_blank" data-type="shopping" data-area="ikebukuro" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Mandarake Nayuta</span><p class="text-[10px] text-purple-600 font-medium">二手公仔店 (池袋P'PARCO B2F)</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=BIGBOSS Ochanomizu" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">BIGBOSS Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=墨田區本所" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">住宿地點</span><p class="text-[10px] text-slate-400">墨田區本所</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Ishibashi Music - Shibuya" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Ishibashi Music - Shibuya</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=G-CLUB Shibuya" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">G-CLUB Shibuya</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=ESP Shibuya" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">ESP</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=池部樂器店 哈特曼吉他" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">池部樂器店 哈特曼吉他</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=池部樂器店 哈特曼復古吉他" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">池部樂器店 哈特曼復古吉他</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Nico-Nico Guitars" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Nico-Nico Guitars</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Guitar Planet" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Guitar Planet</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Shimokura Second Hands PART1" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Shimokura Second Hands PART1</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=ESP guitar workshop" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">ESP guitar workshop</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Ishibashi Music - Ochanomizu Main Shop" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Ishibashi Music - Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=下倉楽器 御茶之水本店" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">下倉楽器 御茶之水本店</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+      </div>
     </section>
+
   </div>
 
-  <!-- 新增項目的 Modal -->
+  <!-- 新增地點的 Modal (彈出視窗) -->
   <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
-      <h3 class="font-bold text-lg text-slate-800">新增地點</h3>
-      <input type="text" id="input-name" placeholder="輸入名稱" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
-      <input type="text" id="input-link" placeholder="貼上 Google Maps 連結" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+      <h3 class="font-bold text-base text-slate-800">新增地圖地點</h3>
       
-      <select id="input-type" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
-        <option value="sightseeing">分類：景點/拍照</option>
-        <option value="food">分類：美食/咖啡</option>
-        <option value="shopping">分類：購物/樂器</option>
-      </select>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-500 mb-1">地點名稱</label>
+          <input type="text" id="input-name" placeholder="例如：晴空塔" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
+        </div>
+        
+        <div>
+          <label class="block font-bold text-slate-500 mb-1">Google Maps 連結</label>
+          <input type="text" id="input-link" placeholder="貼上網址..." class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-500 mb-1">屬性分類 (決定放在哪個大區塊)</label>
+          <select id="input-type" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
+            <option value="sightseeing">景點 / 拍照</option>
+            <option value="food">美食 / 餐廳 / 咖啡</option>
+            <option value="shopping">購物 / 樂器行</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-500 mb-1">地區 / 車站 (用於下方列篩選)</label>
+          <select id="input-area" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#008BB0]">
+            <option value="shibuya">澀谷</option>
+            <option value="asakusa">淺草</option>
+            <option value="shinjuku">新宿</option>
+            <option value="ginza">銀座</option>
+            <option value="ochanomizu">御茶之水</option>
+            <option value="ikebukuro">池袋</option>
+            <option value="fuji">富士山區</option>
+            <option value="kamakura">鐮倉區</option>
+            <option value="other">其他 / 住宿</option>
+          </select>
+        </div>
+      </div>
       
-      <div class="flex gap-2">
-        <button onclick="toggleModal(false)" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">取消</button>
-        <button onclick="saveNewItem()" class="flex-1 py-2 bg-[#008BB0] text-white rounded-lg font-bold">完成新增</button>
+      <div class="flex gap-2 pt-2">
+        <button onclick="toggleModal(false)" class="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs">取消</button>
+        <button onclick="saveNewItem()" class="flex-1 py-2.5 bg-[#008BB0] text-white rounded-xl font-bold text-xs">完成新增</button>
       </div>
     </div>
   </div>
 
+  <!-- JavaScript 邏輯：單選篩選 + 動態新增並自動分類 -->
   <script>
+    const currentFilter = {
+        type: null,
+        area: null
+    };
+
+    function selectFilter(category, value, btnElement) {
+        if (currentFilter[category] === value) {
+            currentFilter[category] = null;
+            btnElement.classList.remove('opacity-100', 'shadow-sm');
+            btnElement.classList.add('opacity-70');
+        } else {
+            document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
+                btn.classList.remove('opacity-100', 'shadow-sm');
+                btn.classList.add('opacity-70');
+            });
+            currentFilter[category] = value;
+            btnElement.classList.remove('opacity-70');
+            btnElement.classList.add('opacity-100', 'shadow-sm');
+        }
+        applyMapFilters();
+    }
+
+    function clearAllFilters() {
+        currentFilter.type = null;
+        currentFilter.area = null;
+        document.querySelectorAll('.filter-btn-type, .filter-btn-area').forEach(btn => {
+            btn.classList.remove('opacity-100', 'shadow-sm');
+            btn.classList.add('opacity-70');
+        });
+        applyMapFilters();
+    }
+
+    function applyMapFilters() {
+        const items = document.querySelectorAll('.map-item');
+        const sections = document.querySelectorAll('#container-view-type section');
+
+        const hasTypeFilter = currentFilter.type !== null;
+        const hasAreaFilter = currentFilter.area !== null;
+
+        items.forEach(item => {
+            const itemType = item.getAttribute('data-type');
+            const itemArea = item.getAttribute('data-area');
+
+            const matchType = !hasTypeFilter || (itemType === currentFilter.type);
+            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
+
+            let showItem = false;
+            if (!hasTypeFilter && !hasAreaFilter) {
+                showItem = true;
+            } else if (hasTypeFilter && hasAreaFilter) {
+                showItem = matchType && matchArea;
+            } else {
+                showItem = (hasTypeFilter ? matchType : true) && (hasAreaFilter ? matchArea : true);
+            }
+
+            item.style.display = showItem ? 'flex' : 'none';
+        });
+
+        sections.forEach(section => {
+            let hasVisible = false;
+            section.querySelectorAll('.map-item').forEach(el => {
+                if (el.style.display !== 'none') hasVisible = true;
+            });
+            section.style.display = hasVisible ? 'block' : 'none';
+        });
+    }
+
+    // Modal 控制
     function toggleModal(show) {
       document.getElementById('add-modal').classList.toggle('hidden', !show);
     }
 
+    // 新增項目並自動分類
     function saveNewItem() {
-      const name = document.getElementById('input-name').value;
-      const link = document.getElementById('input-link').value;
+      const name = document.getElementById('input-name').value.trim();
+      const link = document.getElementById('input-link').value.trim();
       const type = document.getElementById('input-type').value;
+      const area = document.getElementById('input-area').value;
 
-      if (!name || !link) return alert('請填寫完整資訊');
+      if (!name || !link) {
+        alert('請填寫地點名稱與 Google Maps 連結！');
+        return;
+      }
 
+      // 建立新項目節點
       const newItem = document.createElement('a');
       newItem.href = link;
       newItem.target = "_blank";
-      newItem.className = "map-item bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
       newItem.dataset.type = type;
+      newItem.dataset.area = area;
+      newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
       newItem.innerHTML = `<span class="font-bold text-slate-800">${name}</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
 
-      // 自動分類插入
-      document.querySelector(`#type-${type} .map-item-list`).appendChild(newItem);
-      
+      // 自動歸類插入對應的 section 內
+      const targetContainer = document.querySelector(`#map-type-${type} .map-item-list`);
+      if (targetContainer) {
+        targetContainer.appendChild(newItem);
+      }
+
+      // 關閉視窗並清空欄位
       toggleModal(false);
-      // 清空輸入框
       document.getElementById('input-name').value = '';
       document.getElementById('input-link').value = '';
+
+      // 重新套用當前篩選，確保新項目顯示正確
+      applyMapFilters();
     }
   </script>
 </div>
-    
+
     
     <!-- MORE PAGE -->
     <div id="page-more" class="page-view hidden space-y-4">
