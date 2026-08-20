@@ -7,6 +7,123 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
+      authDomain: "tokyo20261128-20261213.firebaseapp.com",
+      databaseURL: "https://tokyo20261128-20261213-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tokyo20261128-20261213",
+      storageBucket: "tokyo20261128-20261213.firebasestorage.app",
+      messagingSenderId: "293845890979",
+      appId: "1:293845890979:web:aba55dca6cbdd6226b4c16",
+      measurementId: "G-SF0TB6LZHE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 預設資料
+    const defaultItinerary = [
+      { day: 1, date: '11.28 SAT', title: '抵達東京 ➔ 晴空塔 ➔ 澀谷 SKY', items: [
+        { time: '10:35', title: '抵達咸田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
+        { time: '11:30', title: '熙樂苑 KIRAKUEN WAGYU 午餐', desc: '晴空塔採買：3F Uniqlo, POP MART, Dr.Martens, JUMP', cost: 0 },
+        { time: '17:30', title: '澀谷 SKY 展望台 (Shibuya Sky)', desc: '地鐵：押上 - 澀谷 (30min / ¥220)', cost: 220 }
+      ]},
+      { day: 2, date: '11.29 SUN', title: '自由探索行程', items: [] },
+      { day: 3, date: '11.30 MON', title: '自由探索行程', items: [] },
+      { day: 4, date: '12.01 TUE', title: '鎌倉一日遊 ➔ 七里濱拍富士山', items: [
+        { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min / ¥260)', cost: 260 },
+        { time: '12:00', title: '七里濱海岸 拍富士山秘境', desc: '推薦美食：Cafe Yoridocoro / Bills / Windera Cafe', cost: 0 }
+      ]},
+      { day: 5, date: '12.02 WED', title: '自由探索行程', items: [] },
+      { day: 6, date: '12.03 THU', title: '自由探索行程', items: [] },
+      { day: 7, date: '12.04 FRI', title: '山中湖富士山景觀之旅', items: [
+        { time: '08:00', title: '高速巴士：新宿 ➔ 山中湖平野', desc: '車程 2h25m / 車資 ¥2,100', cost: 2100 },
+        { time: '11:20', title: '長池親水公園 ➔ 午餐：THE PARK', desc: '', cost: 0 },
+        { time: '13:00', title: '白鳥濱 ➔ 淺間神社 ➔ Lawson 打卡點', desc: '', cost: 0 }
+      ]},
+      { day: 8, date: '12.05 SAT', title: '自由探索行程', items: [] },
+      { day: 9, date: '12.06 SUN', title: '自由探索行程', items: [] },
+      { day: 10, date: '12.07 MON', title: '自由探索行程', items: [] },
+      { day: 11, date: '12.08 TUE', title: '自由探索行程', items: [] },
+      { day: 12, date: '12.09 WED', title: '東京迪士尼海洋 DisneySea', items: [
+        { time: '08:00', title: '入園與搶 DPA 尊享卡', desc: '電車：市區 - 舞濱往返 (約 ¥800)', cost: 800 }
+      ]},
+      { day: 13, date: '12.10 THU', title: '自由探索行程', items: [] },
+      { day: 14, date: '12.11 FRI', title: '自由探索行程', items: [] },
+      { day: 15, date: '12.12 SAT', title: '自由探索行程 / 伴手禮最後採買', items: [] },
+      { day: 16, date: '12.13 SUN', title: '成田機場 ➔ 返台', items: [
+        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
+        { time: '11:25', title: '✈️ 台灣虎航 IT201 起飛返台', desc: '', cost: 0 }
+      ]}
+    ];
+
+    const defaultPrep = [
+      { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
+      { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
+      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
+    ];
+
+    const defaultTicket = [
+      { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
+      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
+    ];
+
+    // 全域資料變數
+    window.itineraryData = [];
+    window.prepList = [];
+    window.ticketList = [];
+    window.expenses = [];
+
+    // 初始化與即時監聽 Firebase 資料
+    const tripRef = ref(db, 'tokyo_trip_data');
+
+    onValue(tripRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        window.itineraryData = data.itinerary || defaultItinerary;
+        window.prepList = data.prep || defaultPrep;
+        window.ticketList = data.ticket || defaultTicket;
+        window.expenses = data.expenses || [];
+      } else {
+        // 若資料庫全空，寫入預設值
+        window.itineraryData = defaultItinerary;
+        window.prepList = defaultPrep;
+        window.ticketList = defaultTicket;
+        window.expenses = [];
+        saveToFirebase();
+      }
+
+      // 重新渲染畫面
+      if (typeof renderTimeline === 'function') {
+        renderTimeline();
+        renderPrepList();
+        renderTicketList();
+        updateAllProgressUI();
+        calculateTransportExpenses();
+        updateBudgetUI();
+      }
+    });
+
+    // 儲存至 Firebase 函式
+    window.saveToFirebase = function() {
+      set(tripRef, {
+        itinerary: window.itineraryData,
+        prep: window.prepList,
+        ticket: window.ticketList,
+        expenses: window.expenses
+      }).catch((error) => {
+        console.error("寫入雲端失敗: ", error);
+        alert("網路連線異常，資料同步可能失敗！");
+      });
+    };
+  </script>
+
   <style>
     body { font-family: 'Noto Sans TC', sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -18,7 +135,7 @@
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-[#2C4A5A]"></span>
-      <span class="tracking-wider text-slate-800 font-bold text-xs">TOKYO 16DN</span>
+      <span class="tracking-wider text-slate-800 font-bold text-xs">TOKYO 16DN <span class="text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-1"><i class="fa-solid fa-cloud"></i> 雲端同步中</span></span>
     </div>
     <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
       <i class="fa-solid fa-cake-candles text-amber-500 mr-1"></i> 生日之旅
@@ -473,85 +590,18 @@
   </nav>
 
   <script>
-    // 預設資料與 LocalStorage 讀取
-    let defaultItinerary = [
-      { day: 1, date: '11.28 SAT', title: '抵達東京 ➔ 晴空塔 ➔ 澀谷 SKY', items: [
-        { time: '10:35', title: '抵達咸田 T2 機場', desc: '京成成田 skyaccess：成田二航 - 押上 (53min / ¥1,194)', cost: 1194 },
-        { time: '11:30', title: '熙樂苑 KIRAKUEN WAGYU 午餐', desc: '晴空塔採買：3F Uniqlo, POP MART, Dr.Martens, JUMP', cost: 0 },
-        { time: '17:30', title: '澀谷 SKY 展望台 (Shibuya Sky)', desc: '地鐵：押上 - 澀谷 (30min / ¥220)', cost: 220 }
-      ]},
-      { day: 2, date: '11.29 SUN', title: '自由探索行程', items: [] },
-      { day: 3, date: '11.30 MON', title: '自由探索行程', items: [] },
-      { day: 4, date: '12.01 TUE', title: '鎌倉一日遊 ➔ 七里濱拍富士山', items: [
-        { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min / ¥260)', cost: 260 },
-        { time: '12:00', title: '七里濱海岸 拍富士山秘境', desc: '推薦美食：Cafe Yoridocoro / Bills / Windera Cafe', cost: 0 }
-      ]},
-      { day: 5, date: '12.02 WED', title: '自由探索行程', items: [] },
-      { day: 6, date: '12.03 THU', title: '自由探索行程', items: [] },
-      { day: 7, date: '12.04 FRI', title: '山中湖富士山景觀之旅', items: [
-        { time: '08:00', title: '高速巴士：新宿 ➔ 山中湖平野', desc: '車程 2h25m / 車資 ¥2,100', cost: 2100 },
-        { time: '11:20', title: '長池親水公園 ➔ 午餐：THE PARK', desc: '', cost: 0 },
-        { time: '13:00', title: '白鳥濱 ➔ 淺間神社 ➔ Lawson 打卡點', desc: '', cost: 0 }
-      ]},
-      { day: 8, date: '12.05 SAT', title: '自由探索行程', items: [] },
-      { day: 9, date: '12.06 SUN', title: '自由探索行程', items: [] },
-      { day: 10, date: '12.07 MON', title: '自由探索行程', items: [] },
-      { day: 11, date: '12.08 TUE', title: '自由探索行程', items: [] },
-      { day: 12, date: '12.09 WED', title: '東京迪士尼海洋 DisneySea', items: [
-        { time: '08:00', title: '入園與搶 DPA 尊享卡', desc: '電車：市區 - 舞濱往返 (約 ¥800)', cost: 800 }
-      ]},
-      { day: 13, date: '12.10 THU', title: '自由探索行程', items: [] },
-      { day: 14, date: '12.11 FRI', title: '自由探索行程', items: [] },
-      { day: 15, date: '12.12 SAT', title: '自由探索行程 / 伴手禮最後採買', items: [] },
-      { day: 16, date: '12.13 SUN', title: '成田機場 ➔ 返台', items: [
-        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
-        { time: '11:25', title: '✈️ 台灣虎航 IT201 起飛返台', desc: '', cost: 0 }
-      ]}
-    ];
-
-    let defaultPrep = [
-      { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
-      { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
-      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
-    ];
-
-    let defaultTicket = [
-      { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
-      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
-    ];
-
-    // 從 localStorage 讀取或初始化
-    let itineraryData = JSON.parse(localStorage.getItem('tokyo_itinerary')) || defaultItinerary;
-    let prepList = JSON.parse(localStorage.getItem('tokyo_prep')) || defaultPrep;
-    let ticketList = JSON.parse(localStorage.getItem('tokyo_ticket')) || defaultTicket;
-    let expenses = JSON.parse(localStorage.getItem('tokyo_expenses')) || [];
-
-    // 儲存至 localStorage 的核心函式
-    function saveData() {
-      localStorage.setItem('tokyo_itinerary', JSON.stringify(itineraryData));
-      localStorage.setItem('tokyo_prep', JSON.stringify(prepList));
-      localStorage.setItem('tokyo_ticket', JSON.stringify(ticketList));
-      localStorage.setItem('tokyo_expenses', JSON.stringify(expenses));
-    }
-
-    // Modal 多步驟控制變數
     let currentModalDayIndex = null;
     let currentStep = 1;
 
-    window.onload = function() {
+    window.addEventListener('DOMContentLoaded', () => {
       setCurrentDateTimeInput();
-      renderTimeline();
-      renderPrepList();
-      renderTicketList();
-      updateAllProgressUI();
-      calculateTransportExpenses();
-      updateBudgetUI();
-    };
+    });
 
     function setCurrentDateTimeInput() {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('expense-time').value = now.toISOString().slice(0, 16);
+      const elem = document.getElementById('expense-time');
+      if (elem) elem.value = now.toISOString().slice(0, 16);
     }
 
     function switchMainPage(pageId) {
@@ -588,49 +638,54 @@
     function calculateTransportExpenses() {
       let totalCost = 0;
       const listContainer = document.getElementById('transport-items-list');
+      if (!listContainer) return;
       listContainer.innerHTML = '';
 
-      itineraryData.forEach((dayData) => {
-        dayData.items.forEach((item) => {
-          if (item.cost && item.cost > 0) {
-            totalCost += item.cost;
+      window.itineraryData.forEach((dayData) => {
+        if (dayData.items) {
+          dayData.items.forEach((item) => {
+            if (item.cost && item.cost > 0) {
+              totalCost += item.cost;
 
-            const itemRow = document.createElement('div');
-            itemRow.className = 'bg-white/10 hover:bg-white/20 p-2 rounded-xl flex justify-between items-center cursor-pointer transition active:scale-[0.98]';
-            itemRow.onclick = function() {
-              switchMainPage('timeline');
-              scrollToDay(`day-${dayData.day}`);
-            };
+              const itemRow = document.createElement('div');
+              itemRow.className = 'bg-white/10 hover:bg-white/20 p-2 rounded-xl flex justify-between items-center cursor-pointer transition active:scale-[0.98]';
+              itemRow.onclick = function() {
+                switchMainPage('timeline');
+                scrollToDay(`day-${dayData.day}`);
+              };
 
-            itemRow.innerHTML = `
-              <div class="flex items-center gap-1.5 overflow-hidden">
-                <span class="bg-amber-400/20 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded">D${dayData.day}</span>
-                <span class="font-bold text-white text-[11px] truncate">${item.title}</span>
-              </div>
-              <div class="text-right flex items-center gap-1.5">
-                <span class="font-black text-amber-300 text-xs">¥${item.cost.toLocaleString()}</span>
-                <i class="fa-solid fa-arrow-right text-[9px] text-slate-300"></i>
-              </div>
-            `;
-            listContainer.appendChild(itemRow);
-          }
-        });
+              itemRow.innerHTML = `
+                <div class="flex items-center gap-1.5 overflow-hidden">
+                  <span class="bg-amber-400/20 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded">D${dayData.day}</span>
+                  <span class="font-bold text-white text-[11px] truncate">${item.title}</span>
+                </div>
+                <div class="text-right flex items-center gap-1.5">
+                  <span class="font-black text-amber-300 text-xs">¥${item.cost.toLocaleString()}</span>
+                  <i class="fa-solid fa-arrow-right text-[9px] text-slate-300"></i>
+                </div>
+              `;
+              listContainer.appendChild(itemRow);
+            }
+          });
+        }
       });
 
-      document.getElementById('timeline-transport-total').innerText = totalCost.toLocaleString();
+      const totalElem = document.getElementById('timeline-transport-total');
+      if (totalElem) totalElem.innerText = totalCost.toLocaleString();
     }
 
     function renderTimeline() {
       const container = document.getElementById('timeline-container');
+      if (!container) return;
       container.innerHTML = '';
 
-      itineraryData.forEach((d, dayIndex) => {
+      window.itineraryData.forEach((d, dayIndex) => {
         const card = document.createElement('div');
         card.id = `day-${d.day}`;
         card.className = 'scroll-mt-28 bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3';
         
         let itemsHTML = '';
-        if (d.items.length === 0) {
+        if (!d.items || d.items.length === 0) {
           itemsHTML = `<p class="text-xs text-slate-400 italic py-1"><i class="fa-solid fa-pen-to-square mr-1"></i> 尚未安排行程...</p>`;
         } else {
           d.items.forEach((item, itemIndex) => {
@@ -742,8 +797,12 @@
         const costInput = document.getElementById('input-step-cost').value;
         const cost = parseInt(costInput) || 0;
 
-        itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
-        saveData();
+        if (!window.itineraryData[currentModalDayIndex].items) {
+          window.itineraryData[currentModalDayIndex].items = [];
+        }
+        window.itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
+        
+        window.saveToFirebase();
         renderTimeline();
         closeItemModal();
         return;
@@ -762,8 +821,8 @@
 
     function deleteTimelineItem(dayIndex, itemIndex) {
       if (confirm("確定要刪除這項行程嗎？")) {
-        itineraryData[dayIndex].items.splice(itemIndex, 1);
-        saveData();
+        window.itineraryData[dayIndex].items.splice(itemIndex, 1);
+        window.saveToFirebase();
         renderTimeline();
       }
     }
@@ -771,8 +830,9 @@
     // --- 行前物品與預約 ---
     function renderPrepList() {
       const container = document.getElementById('prep-list-container');
+      if (!container) return;
       container.innerHTML = '';
-      prepList.forEach((item) => {
+      window.prepList.forEach((item) => {
         const row = document.createElement('div');
         row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
         row.innerHTML = `
@@ -790,32 +850,33 @@
       const input = document.getElementById('new-prep-input');
       const text = input.value.trim();
       if (!text) return alert("請輸入物品名稱！");
-      prepList.push({ id: Date.now(), text, checked: false });
-      saveData();
+      window.prepList.push({ id: Date.now(), text, checked: false });
+      window.saveToFirebase();
       input.value = '';
       renderPrepList();
       updateAllProgressUI();
     }
 
     function deletePrepItem(id) {
-      prepList = prepList.filter(c => c.id !== id);
-      saveData();
+      window.prepList = window.prepList.filter(c => c.id !== id);
+      window.saveToFirebase();
       renderPrepList();
       updateAllProgressUI();
     }
 
     function togglePrepItem(id) {
-      const item = prepList.find(c => c.id === id);
+      const item = window.prepList.find(c => c.id === id);
       if (item) item.checked = !item.checked;
-      saveData();
+      window.saveToFirebase();
       renderPrepList();
       updateAllProgressUI();
     }
 
     function renderTicketList() {
       const container = document.getElementById('ticket-list-container');
+      if (!container) return;
       container.innerHTML = '';
-      ticketList.forEach((item) => {
+      window.ticketList.forEach((item) => {
         const row = document.createElement('div');
         row.className = `flex items-center gap-2.5 p-2.5 rounded-xl border transition ${item.checked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-[#F8FAFC] border-slate-100 text-slate-700'}`;
         row.innerHTML = `
@@ -833,44 +894,52 @@
       const input = document.getElementById('new-ticket-input');
       const text = input.value.trim();
       if (!text) return alert("請輸入門票/預約項目！");
-      ticketList.push({ id: Date.now(), text, checked: false });
-      saveData();
+      window.ticketList.push({ id: Date.now(), text, checked: false });
+      window.saveToFirebase();
       input.value = '';
       renderTicketList();
       updateAllProgressUI();
     }
 
     function deleteTicketItem(id) {
-      ticketList = ticketList.filter(c => c.id !== id);
-      saveData();
+      window.ticketList = window.ticketList.filter(c => c.id !== id);
+      window.saveToFirebase();
       renderTicketList();
       updateAllProgressUI();
     }
 
     function toggleTicketItem(id) {
-      const item = ticketList.find(c => c.id === id);
+      const item = window.ticketList.find(c => c.id === id);
       if (item) item.checked = !item.checked;
-      saveData();
+      window.saveToFirebase();
       renderTicketList();
       updateAllProgressUI();
     }
 
     function updateAllProgressUI() {
-      const prepTotal = prepList.length;
-      const prepDone = prepList.filter(c => c.checked).length;
+      const prepTotal = window.prepList.length;
+      const prepDone = window.prepList.filter(c => c.checked).length;
       const prepPercent = prepTotal === 0 ? 0 : Math.round((prepDone / prepTotal) * 100);
 
-      document.getElementById('home-prep-text').innerText = `${prepDone} / ${prepTotal} (${prepPercent}%)`;
-      document.getElementById('home-prep-bar').style.width = `${prepPercent}%`;
-      document.getElementById('more-prep-count').innerText = `${prepDone} / ${prepTotal} 完成`;
+      const prepText = document.getElementById('home-prep-text');
+      const prepBar = document.getElementById('home-prep-bar');
+      const morePrepCount = document.getElementById('more-prep-count');
 
-      const ticketTotal = ticketList.length;
-      const ticketDone = ticketList.filter(c => c.checked).length;
+      if (prepText) prepText.innerText = `${prepDone} / ${prepTotal} (${prepPercent}%)`;
+      if (prepBar) prepBar.style.width = `${prepPercent}%`;
+      if (morePrepCount) morePrepCount.innerText = `${prepDone} / ${prepTotal} 完成`;
+
+      const ticketTotal = window.ticketList.length;
+      const ticketDone = window.ticketList.filter(c => c.checked).length;
       const ticketPercent = ticketTotal === 0 ? 0 : Math.round((ticketDone / ticketTotal) * 100);
 
-      document.getElementById('home-ticket-text').innerText = `${ticketDone} / ${ticketTotal} (${ticketPercent}%)`;
-      document.getElementById('home-ticket-bar').style.width = `${ticketPercent}%`;
-      document.getElementById('more-ticket-count').innerText = `${ticketDone} / ${ticketTotal} 完成`;
+      const ticketText = document.getElementById('home-ticket-text');
+      const ticketBar = document.getElementById('home-ticket-bar');
+      const moreTicketCount = document.getElementById('more-ticket-count');
+
+      if (ticketText) ticketText.innerText = `${ticketDone} / ${ticketTotal} (${ticketPercent}%)`;
+      if (ticketBar) ticketBar.style.width = `${ticketPercent}%`;
+      if (moreTicketCount) moreTicketCount.innerText = `${ticketDone} / ${ticketTotal} 完成`;
     }
 
     function addExpense() {
@@ -894,8 +963,8 @@
         timeFormatted = '未設定時間';
       }
 
-      expenses.push({ id: Date.now(), time: timeFormatted, payer, cat, amount, note });
-      saveData();
+      window.expenses.push({ id: Date.now(), time: timeFormatted, payer, cat, amount, note });
+      window.saveToFirebase();
       updateBudgetUI();
 
       document.getElementById('expense-amount').value = '';
@@ -904,8 +973,8 @@
     }
 
     function deleteExpense(id) {
-      expenses = expenses.filter(item => item.id !== id);
-      saveData();
+      window.expenses = window.expenses.filter(item => item.id !== id);
+      window.saveToFirebase();
       updateBudgetUI();
     }
 
@@ -915,12 +984,13 @@
       let chuxuanTotal = 0;
 
       const listContainer = document.getElementById('expense-list');
+      if (!listContainer) return;
       listContainer.innerHTML = '';
 
-      if (expenses.length === 0) {
+      if (!window.expenses || window.expenses.length === 0) {
         listContainer.innerHTML = `<p class="text-center py-4 text-slate-400">尚無支出紀錄</p>`;
       } else {
-        expenses.forEach(item => {
+        window.expenses.forEach(item => {
           total += item.amount;
           if (item.payer === '奕柔') yirouTotal += item.amount;
           if (item.payer === '楚軒') chuxuanTotal += item.amount;
