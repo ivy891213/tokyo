@@ -312,31 +312,59 @@
 
     </div>
 
-   <!-- TIMELINE PAGE -->
-    <div id="page-timeline" class="page-view hidden space-y-3 pb-20">
-      
-      <!-- 頂部固定導覽與新增按鈕整合列 -->
-      <div class="sticky top-[53px] z-40 bg-[#EEF2F5]/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-slate-200/60 space-y-2">
-        <div class="flex items-center gap-2">
-          <!-- 天數快速切換列 -->
-          <div class="flex-1 flex space-x-2 overflow-x-auto no-scrollbar text-xs font-bold">
-            <button onclick="scrollToDay('day-1')" class="day-tab-btn px-3.5 py-1.5 bg-[#2C4A5A] text-white rounded-xl whitespace-nowrap shadow-sm" data-day="day-1">D1 <span class="text-[9px] opacity-80">11.28</span></button>
-            <button onclick="scrollToDay('day-2')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-2">D2 <span class="text-[9px] opacity-70">11.29</span></button>
-            <button onclick="scrollToDay('day-3')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-3">D3 <span class="text-[9px] opacity-70">11.30</span></button>
-            <button onclick="scrollToDay('day-4')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-4">D4 <span class="text-[9px] opacity-70">12.01</span></button>
-            <button onclick="scrollToDay('day-5')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-5">D5 <span class="text-[9px] opacity-70">12.02</span></button>
-            <button onclick="scrollToDay('day-6')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-6">D6 <span class="text-[9px] opacity-70">12.03</span></button>
-            <button onclick="scrollToDay('day-7')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-7">D7 <span class="text-[9px] opacity-70">12.04</span></button>
-            <button onclick="scrollToDay('day-8')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-8">D8 <span class="text-[9px] opacity-70">12.05</span></button>
-            <button onclick="scrollToDay('day-9')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-9">D9 <span class="text-[9px] opacity-70">12.06</span></button>
-            <button onclick="scrollToDay('day-10')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-10">D10 <span class="text-[9px] opacity-70">12.07</span></button>
-            <button onclick="scrollToDay('day-11')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-11">D11 <span class="text-[9px] opacity-70">12.08</span></button>
-            <button onclick="scrollToDay('day-12')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-12">D12 <span class="text-[9px] opacity-70">12.09</span></button>
-            <button onclick="scrollToDay('day-13')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-13">D13 <span class="text-[9px] opacity-70">12.10</span></button>
-            <button onclick="scrollToDay('day-14')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-14">D14 <span class="text-[9px] opacity-70">12.11</span></button>
-            <button onclick="scrollToDay('day-15')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-15">D15 <span class="text-[9px] opacity-70">12.12</span></button>
-            <button onclick="scrollToDay('day-16')" class="day-tab-btn px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200" data-day="day-16">D16 <span class="text-[9px] opacity-70">12.13</span></button>
-          </div>
+   這邊也可以把新增改成你那個版本嗎
+
+<!-- TIMELINE PAGE -->
+    <div id="page-timeline" class="page-view hidden space-y-3">
+      
+      <div class="sticky top-[53px] z-40 bg-[#EEF2F5]/90 backdrop-blur-md py-2 -mx-4 px-4 border-b border-slate-200/60">
+        <div class="flex space-x-2 overflow-x-auto no-scrollbar text-xs font-bold">
+          <button onclick="scrollToDay('day-1')" class="px-3.5 py-1.5 bg-[#2C4A5A] text-white rounded-xl whitespace-nowrap shadow-sm">D1 <span class="text-[9px] opacity-80">11.28</span></button>
+          <button onclick="scrollToDay('day-2')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D2 <span class="text-[9px] opacity-70">11.29</span></button>
+          <button onclick="scrollToDay('day-3')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D3 <span class="text-[9px] opacity-70">11.30</span></button>
+          <button onclick="scrollToDay('day-4')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D4 <span class="text-[9px] opacity-70">12.01</span></button>
+          <button onclick="scrollToDay('day-5')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D5 <span class="text-[9px] opacity-70">12.02</span></button>
+          <button onclick="scrollToDay('day-6')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D6 <span class="text-[9px] opacity-70">12.03</span></button>
+          <button onclick="scrollToDay('day-7')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D7 <span class="text-[9px] opacity-70">12.04</span></button>
+          <button onclick="scrollToDay('day-8')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D8 <span class="text-[9px] opacity-70">12.05</span></button>
+          <button onclick="scrollToDay('day-9')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D9 <span class="text-[9px] opacity-70">12.06</span></button>
+          <button onclick="scrollToDay('day-10')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D10 <span class="text-[9px] opacity-70">12.07</span></button>
+          <button onclick="scrollToDay('day-11')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D11 <span class="text-[9px] opacity-70">12.08</span></button>
+          <button onclick="scrollToDay('day-12')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D12 <span class="text-[9px] opacity-70">12.09</span></button>
+          <button onclick="scrollToDay('day-13')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D13 <span class="text-[9px] opacity-70">12.10</span></button>
+          <button onclick="scrollToDay('day-14')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D14 <span class="text-[9px] opacity-70">12.11</span></button>
+          <button onclick="scrollToDay('day-15')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D15 <span class="text-[9px] opacity-70">12.12</span></button>
+          <button onclick="scrollToDay('day-16')" class="px-3.5 py-1.5 bg-white text-slate-600 rounded-xl whitespace-nowrap border border-slate-200">D16 <span class="text-[9px] opacity-70">12.13</span></button>
+        </div>
+      </div>
+
+      <section class="bg-gradient-to-r from-[#2C4A5A] to-[#1F3542] text-white rounded-3xl p-4 shadow-sm space-y-2">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2 cursor-pointer" onclick="toggleTransportDetails()">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-train-subway text-amber-300 text-xs"></i>
+              <h2 class="text-xs font-bold text-amber-300 tracking-wider">預估行程交通費總計</h2>
+            </div>
+            <p class="text-[10px] text-slate-300 mt-0.5">點擊此處展開/收合費用詳細明細</p>
+          </div>
+          <div class="text-right flex items-center gap-2">
+            <div>
+              <span class="text-xl font-black text-amber-400">¥<span id="timeline-transport-total">0</span></span>
+              <p class="text-[9px] text-slate-300">單人預算估計</p>
+            </div>
+            <i id="transport-toggle-icon" class="fa-solid fa-chevron-down text-xs text-amber-300 transition-transform duration-300"></i>
+          </div>
+        </div>
+
+        <div id="transport-details-container" class="hidden pt-1 space-y-1.5 text-xs border-t border-white/10">
+          <p class="text-[10px] text-slate-300 italic">👇 點擊下方任何項目可直接跳轉至當天行程：</p>
+          <div id="transport-items-list" class="space-y-1"></div>
+        </div>
+      </section>
+
+      <div id="timeline-container" class="space-y-4"></div>
+    </div>
+
           <!-- 展開新增表單按鈕 -->
           <button onclick="toggleTimelineAddBox()" class="px-3 py-1.5 bg-[#2C4A5A] hover:bg-[#1F3542] text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-sm transition flex items-center gap-1 shrink-0">
             <i class="fa-solid fa-plus"></i> 新增行程
