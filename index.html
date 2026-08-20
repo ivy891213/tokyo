@@ -15,6 +15,7 @@
 </head>
 <body class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
+  <!-- 頂部 Header -->
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-[#2C4A5A]"></span>
@@ -27,7 +28,7 @@
 
   <main class="p-4 space-y-4">
 
-    <!-- HOME PAGE -->
+    <!-- 1. HOME PAGE 首頁 -->
     <div id="page-home" class="page-view space-y-4">
       <section class="relative bg-[#2C4A5A] rounded-3xl overflow-hidden shadow-sm p-6 text-white text-center">
         <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('https://images.unsplash.com/photo-1503899036084-c55cdd92da26');"></div>
@@ -72,7 +73,7 @@
         </div>
       </section>
 
-      <!-- 準備進度條 -->
+      <!-- 行前準備進度條卡片 -->
       <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
         <div class="flex justify-between items-center border-b border-slate-100 pb-2">
           <div class="flex items-center gap-1.5">
@@ -103,6 +104,7 @@
         </div>
       </section>
 
+      <!-- Trip Hub 快捷入口 -->
       <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-2">
         <div class="flex justify-between items-center px-1">
           <h2 class="text-xs font-black text-slate-800 tracking-wider">TRIP HUB</h2>
@@ -131,7 +133,7 @@
       </section>
     </div>
 
-    <!-- TIMELINE PAGE -->
+    <!-- 2. TIMELINE PAGE 每日行程 -->
     <div id="page-timeline" class="page-view hidden space-y-3">
       <div class="sticky top-[53px] z-40 bg-[#EEF2F5]/90 backdrop-blur-md py-2 -mx-4 px-4 border-b border-slate-200/60">
         <div class="flex space-x-2 overflow-x-auto no-scrollbar text-xs font-bold">
@@ -177,21 +179,21 @@
       <div id="timeline-container" class="space-y-4"></div>
     </div>
 
-    <!-- MAP PAGE -->
+    <!-- 3. MAP PAGE 地圖與超連結 -->
     <div id="page-map" class="page-view hidden space-y-3">
       <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
         <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2">
           <i class="fa-solid fa-map-location-dot text-xs text-[#008BB0]"></i>
-          <h2 class="font-black text-xs text-slate-800 tracking-wider">MAP & LOCATIONS</h2>
+          <h2 class="font-black text-xs text-slate-800 tracking-wider">地標總摘要與地圖連結</h2>
         </div>
         <p class="text-xs text-slate-500 leading-relaxed">點擊下方按鈕即可開啟我們這次東京生日之旅專屬的完整 Google Maps 地圖清單，所有景點、美食都標記在裡面！</p>
         <a href="https://www.google.com/maps/placelists/list/Y3Wbeq8GegN6o4DP3s5y8Hrc3xkB0g" target="_blank" class="block bg-[#F8FAFC] hover:bg-slate-100 p-3.5 rounded-2xl border border-slate-200 text-xs font-bold text-[#008BB0] text-center transition shadow-sm">
-          📍 點此開啟完整 Google Maps 收藏清單 <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1"></i>
+          📍 點此開啟完整 Google Maps 清單 <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1"></i>
         </a>
       </section>
     </div>
 
-    <!-- MORE PAGE -->
+    <!-- 4. MORE PAGE 更多、清單與記帳 -->
     <div id="page-more" class="page-view hidden space-y-4">
       <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
@@ -280,7 +282,7 @@
     </div>
   </main>
 
-  <!-- Modal -->
+  <!-- Modal 行程新增彈窗 -->
   <div id="item-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl overflow-hidden">
       <div class="bg-[#2C4A5A] text-white p-4 flex justify-between items-center">
@@ -311,7 +313,7 @@
     </div>
   </div>
 
-  <!-- Navbar -->
+  <!-- 底部導覽列 Navbar -->
   <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t flex justify-around py-3 z-50 shadow-lg">
     <button onclick="window.switchMainPage('home')" id="nav-btn-home" class="main-nav-btn flex flex-col items-center text-[#2C4A5A]">
       <i class="fa-solid fa-house text-base"></i>
