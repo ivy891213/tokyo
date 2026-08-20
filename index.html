@@ -382,27 +382,27 @@
 
       <!-- 上方列：依屬性篩選 (單選) -->
       <div>
-        <div class="text-[10px] font-bold text-slate-400 mb-1">🍽️ 上方列：屬性篩選 (單選)</div>
+        <div class="text-[10px] font-bold text-slate-400 mb-1">🍽️ 上方列：屬性篩選</div>
         <div id="filter-types" class="flex items-center gap-1 overflow-x-auto text-[11px] font-bold pb-0.5 scrollbar-none">
-          <button onclick="selectFilter('type', 'sightseeing', this)" class="filter-btn-type px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg shrink-0 opacity-50 transition" data-val="sightseeing">景點/拍照</button>
-          <button onclick="selectFilter('type', 'food', this)" class="filter-btn-type px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg shrink-0 opacity-50 transition" data-val="food">美食/咖啡</button>
-          <button onclick="selectFilter('type', 'shopping', this)" class="filter-btn-type px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg shrink-0 opacity-50 transition" data-val="shopping">購物/樂器</button>
+          <button onclick="selectFilter('type', 'sightseeing', this)" class="filter-btn-type px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="sightseeing">景點/拍照</button>
+          <button onclick="selectFilter('type', 'food', this)" class="filter-btn-type px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="food">美食/咖啡</button>
+          <button onclick="selectFilter('type', 'shopping', this)" class="filter-btn-type px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shopping">購物/樂器</button>
         </div>
       </div>
 
       <!-- 下方列：依地區/車站篩選 (單選) -->
       <div class="border-t border-slate-100 pt-1.5">
-        <div class="text-[10px] font-bold text-slate-400 mb-1">📍 下方列：地區/車站篩選 (單選)</div>
+        <div class="text-[10px] font-bold text-slate-400 mb-1">📍 下方列：地區/車站篩選</div>
         <div id="filter-areas" class="flex items-center gap-1 overflow-x-auto text-[11px] font-bold pb-0.5 scrollbar-none">
-          <button onclick="selectFilter('area', 'shibuya', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 opacity-50 transition" data-val="shibuya">澀谷</button>
-          <button onclick="selectFilter('area', 'asakusa', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 opacity-50 transition" data-val="asakusa">淺草</button>
-          <button onclick="selectFilter('area', 'shinjuku', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 opacity-50 transition" data-val="shinjuku">新宿</button>
-          <button onclick="selectFilter('area', 'ginza', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 opacity-50 transition" data-val="ginza">銀座</button>
-          <button onclick="selectFilter('area', 'ochanomizu', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 opacity-50 transition" data-val="ochanomizu">御茶之水</button>
-          <button onclick="selectFilter('area', 'ikebukuro', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 opacity-50 transition" data-val="ikebukuro">池袋</button>
-          <button onclick="selectFilter('area', 'fuji', this)" class="filter-btn-area px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg shrink-0 opacity-50 transition" data-val="fuji">富士山區</button>
-          <button onclick="selectFilter('area', 'kamakura', this)" class="filter-btn-area px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg shrink-0 opacity-50 transition" data-val="kamakura">鐮倉區</button>
-          <button onclick="selectFilter('area', 'other', this)" class="filter-btn-area px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg shrink-0 opacity-50 transition" data-val="other">其他/住宿</button>
+          <button onclick="selectFilter('area', 'shibuya', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shibuya">澀谷</button>
+          <button onclick="selectFilter('area', 'asakusa', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="asakusa">淺草</button>
+          <button onclick="selectFilter('area', 'shinjuku', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shinjuku">新宿</button>
+          <button onclick="selectFilter('area', 'ginza', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ginza">銀座</button>
+          <button onclick="selectFilter('area', 'ochanomizu', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ochanomizu">御茶之水</button>
+          <button onclick="selectFilter('area', 'ikebukuro', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ikebukuro">池袋</button>
+          <button onclick="selectFilter('area', 'fuji', this)" class="filter-btn-area px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="fuji">富士山區</button>
+          <button onclick="selectFilter('area', 'kamakura', this)" class="filter-btn-area px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="kamakura">鐮倉區</button>
+          <button onclick="selectFilter('area', 'other', this)" class="filter-btn-area px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="other">其他/住宿</button>
         </div>
       </div>
 
@@ -413,7 +413,7 @@
   <div class="h-28"></div>
 
 
-  <!-- ==================== 項目列表區 ==================== -->
+  <!-- ==================== 項目列表區 (內容完整保留) ==================== -->
   <div id="container-view-type" class="space-y-4">
 
     <!-- 1. 景點 / 拍照勝地 -->
@@ -522,59 +522,82 @@
 
   </div>
 
-  <!-- 單選與交集運作的 JavaScript 邏輯 -->
+  <!-- 嚴格單選與交集運作的 JavaScript 邏輯 -->
   <script>
-    const currentFilters = { type: null, area: null };
+    // 記錄目前被選中的單一屬性與單一地區
+    const currentFilter = {
+        type: null,
+        area: null
+    };
 
     function selectFilter(category, value, btnElement) {
         // 如果點擊的是已經選中的按鈕，則取消選取
-        if (currentFilters[category] === value) {
-            currentFilters[category] = null;
+        if (currentFilter[category] === value) {
+            currentFilter[category] = null;
             btnElement.classList.remove('opacity-100', 'shadow-sm');
-            btnElement.classList.add('opacity-50');
+            btnElement.classList.add('opacity-70');
         } else {
-            // 清除該類別其他按鈕的選中狀態（確保單選）
+            // 清除該類別其他按鈕的選取狀態
             document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
                 btn.classList.remove('opacity-100', 'shadow-sm');
-                btn.classList.add('opacity-50');
+                btn.classList.add('opacity-70');
             });
-            // 設定新的選中狀態（完全無邊框，僅靠不透明度與陰影區分）
-            currentFilters[category] = value;
-            btnElement.classList.remove('opacity-50');
+
+            // 設定新的選取項目
+            currentFilter[category] = value;
+            btnElement.classList.remove('opacity-70');
             btnElement.classList.add('opacity-100', 'shadow-sm');
         }
 
-        applyFilters();
+        applyMapFilters();
     }
 
     function clearAllFilters() {
-        currentFilters.type = null;
-        currentFilters.area = null;
+        currentFilter.type = null;
+        currentFilter.area = null;
+
+        // 恢復所有按鈕為半透明未選狀態
         document.querySelectorAll('.filter-btn-type, .filter-btn-area').forEach(btn => {
             btn.classList.remove('opacity-100', 'shadow-sm');
-            btn.classList.add('opacity-50');
+            btn.classList.add('opacity-70');
         });
-        applyFilters();
+
+        applyMapFilters();
     }
 
-    function applyFilters() {
+    function applyMapFilters() {
         const items = document.querySelectorAll('.map-item');
         const sections = document.querySelectorAll('#container-view-type section');
+
+        const hasTypeFilter = currentFilter.type !== null;
+        const hasAreaFilter = currentFilter.area !== null;
 
         items.forEach(item => {
             const itemType = item.getAttribute('data-type');
             const itemArea = item.getAttribute('data-area');
 
-            const typeMatch = !currentFilters.type || itemType === currentFilters.type;
-            const areaMatch = !currentFilters.area || itemArea === currentFilters.area;
+            const matchType = !hasTypeFilter || (itemType === currentFilter.type);
+            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
 
-            // 雙維度交集篩選：兩邊必須同時符合（若該維度沒選則視為通過）
-            item.style.display = (typeMatch && areaMatch) ? 'flex' : 'none';
+            // 雙維度交集邏輯
+            let showItem = false;
+            if (!hasTypeFilter && !hasAreaFilter) {
+                showItem = true;
+            } else if (hasTypeFilter && hasAreaFilter) {
+                showItem = matchType && matchArea;
+            } else {
+                showItem = (hasTypeFilter ? matchType : true) && (hasAreaFilter ? matchArea : true);
+            }
+
+            item.style.display = showItem ? 'flex' : 'none';
         });
 
         // 區塊自動隱藏（當該區塊內沒有任何可見項目時隱藏整個 section）
         sections.forEach(section => {
-            const hasVisible = Array.from(section.querySelectorAll('.map-item')).some(el => el.style.display !== 'none');
+            let hasVisible = false;
+            section.querySelectorAll('.map-item').forEach(el => {
+                if (el.style.display !== 'none') hasVisible = true;
+            });
             section.style.display = hasVisible ? 'block' : 'none';
         });
     }
