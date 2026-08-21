@@ -96,36 +96,27 @@
     // 監聽雲端資料變更
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
+      let shouldRepairDefaults = false;
+
       if (data) {
-        const hasItinerary = Array.isArray(data.itinerary) && data.itinerary.length > 0;
-        const hasPrep = Array.isArray(data.prep) && data.prep.length > 0;
-        const hasTicket = Array.isArray(data.ticket) && data.ticket.length > 0;
-        const hasExpenses = Array.isArray(data.expenses);
+        window.itineraryData = Array.isArray(data.itinerary) && data.itinerary.length > 0 ? data.itinerary : defaultItinerary;
+        window.prepList = Array.isArray(data.prep) && data.prep.length > 0 ? data.prep : defaultPrep;
+        window.ticketList = Array.isArray(data.ticket) && data.ticket.length > 0 ? data.ticket : defaultTicket;
+        window.expenses = Array.isArray(data.expenses) ? data.expenses : [];
 
-        window.itineraryData = hasItinerary ? data.itinerary : defaultItinerary;
-        window.prepList = hasPrep ? data.prep : defaultPrep;
-        window.ticketList = hasTicket ? data.ticket : defaultTicket;
-        window.expenses = hasExpenses ? data.expenses : [];
-
-        // 舊資料可能已經把清單存成空陣列；自動補回預設清單並同步到 Firebase。
-        if (!hasItinerary || !hasPrep || !hasTicket || !hasExpenses) {
-          set(tripRef, {
-            itinerary: window.itineraryData,
-            prep: window.prepList,
-            ticket: window.ticketList,
-            expenses: window.expenses
-          }).catch((error) => console.error('補回預設資料失敗:', error));
-        }
-      } else if (!isCloudLoaded) {
-        // 如果雲端真的完全沒有資料，才寫入預設值
+        // Firebase 裡若存在空清單，視為舊資料，立即補回預設清單。
+        shouldRepairDefaults = !Array.isArray(data.prep) || data.prep.length === 0 ||
+                               !Array.isArray(data.ticket) || data.ticket.length === 0;
+      } else {
         window.itineraryData = defaultItinerary;
         window.prepList = defaultPrep;
         window.ticketList = defaultTicket;
         window.expenses = [];
-        saveToFirebase();
+        shouldRepairDefaults = true;
       }
 
       isCloudLoaded = true;
+      if (shouldRepairDefaults) saveToFirebase();
 
       // 重新渲染畫面
       if (typeof renderTimeline === 'function') {
@@ -699,7 +690,8 @@
             const itemArea = item.getAttribute('data-area');
 
             const matchType = !hasTypeFilter || (itemType === currentFilter.type);
-            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area || itemArea === 'other');
+            // 有選地區時必須精準符合該地區；'other' 不再視為所有地區都符合。
+            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
 
             let showItem = false;
             if (!hasTypeFilter && !hasAreaFilter) {
