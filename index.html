@@ -93,40 +93,52 @@
     let isCloudLoaded = false;
     const tripRef = ref(db, 'tokyo_trip_data');
 
+    // 雲端資料是否已完成第一次同步。Firebase callback 可能早於頁面下方的 render 函式執行，
+    // 所以必須等 DOM 與所有函式都 ready 後再統一 render，避免首頁卡在 0 / 0。
+    window.cloudDataReady = false;
+    window.appDomReady = false;
+
+    function renderAllPages() {
+      if (!window.appDomReady) return;
+      if (typeof renderTimeline === 'function') renderTimeline();
+      if (typeof renderPrepList === 'function') renderPrepList();
+      if (typeof renderTicketList === 'function') renderTicketList();
+      if (typeof updateAllProgressUI === 'function') updateAllProgressUI();
+      if (typeof calculateTransportExpenses === 'function') calculateTransportExpenses();
+      if (typeof updateBudgetUI === 'function') updateBudgetUI();
+      if (typeof applyMapFilters === 'function') applyMapFilters();
+    }
+    window.renderAllPages = renderAllPages;
+
     // 監聽雲端資料變更
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
       let shouldRepairDefaults = false;
 
       if (data) {
-        window.itineraryData = Array.isArray(data.itinerary) && data.itinerary.length > 0 ? data.itinerary : defaultItinerary;
-        window.prepList = Array.isArray(data.prep) && data.prep.length > 0 ? data.prep : defaultPrep;
-        window.ticketList = Array.isArray(data.ticket) && data.ticket.length > 0 ? data.ticket : defaultTicket;
+        window.itineraryData = Array.isArray(data.itinerary) && data.itinerary.length > 0
+          ? data.itinerary : structuredClone(defaultItinerary);
+        window.prepList = Array.isArray(data.prep) && data.prep.length > 0
+          ? data.prep : structuredClone(defaultPrep);
+        window.ticketList = Array.isArray(data.ticket) && data.ticket.length > 0
+          ? data.ticket : structuredClone(defaultTicket);
         window.expenses = Array.isArray(data.expenses) ? data.expenses : [];
 
-        // Firebase 裡若存在空清單，視為舊資料，立即補回預設清單。
         shouldRepairDefaults = !Array.isArray(data.prep) || data.prep.length === 0 ||
                                !Array.isArray(data.ticket) || data.ticket.length === 0;
       } else {
-        window.itineraryData = defaultItinerary;
-        window.prepList = defaultPrep;
-        window.ticketList = defaultTicket;
+        window.itineraryData = structuredClone(defaultItinerary);
+        window.prepList = structuredClone(defaultPrep);
+        window.ticketList = structuredClone(defaultTicket);
         window.expenses = [];
         shouldRepairDefaults = true;
       }
 
       isCloudLoaded = true;
-      if (shouldRepairDefaults) saveToFirebase();
+      window.cloudDataReady = true;
 
-      // 重新渲染畫面
-      if (typeof renderTimeline === 'function') {
-        renderTimeline();
-        renderPrepList();
-        renderTicketList();
-        updateAllProgressUI();
-        calculateTransportExpenses();
-        updateBudgetUI();
-      }
+      if (shouldRepairDefaults) saveToFirebase();
+      renderAllPages();
     });
 
     // 儲存至 Firebase 函式
@@ -647,78 +659,86 @@
     <!-- JavaScript 邏輯：單選篩選 + 內嵌表單新增並自動分類 -->
   <script>
     const currentFilter = {
-        type: null,
-        area: null
+      type: null,
+      area: null
     };
 
-    function selectFilter(category, value, btnElement) {
-        if (currentFilter[category] === value) {
-            currentFilter[category] = null;
-            btnElement.classList.remove('opacity-100', 'shadow-sm');
-            btnElement.classList.add('opacity-70');
-        } else {
-            document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
-                btn.classList.remove('opacity-100', 'shadow-sm');
-                btn.classList.add('opacity-70');
-            });
-            currentFilter[category] = value;
-            btnElement.classList.remove('opacity-70');
-            btnElement.classList.add('opacity-100', 'shadow-sm');
-        }
-        applyMapFilters();
+    // 地圖篩選採「嚴格 AND」：type 與 area 都有選擇時必須同時完全相等。
+    // 不做名稱模糊搜尋，也不把 other 當成萬用分類。
+    function selectFilter(category, value) {
+      currentFilter[category] = currentFilter[category] === value ? null : value;
+
+      document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
+        const active = currentFilter[category] === btn.dataset.val;
+        btn.classList.toggle('opacity-100', active);
+        btn.classList.toggle('shadow-sm', active);
+        btn.classList.toggle('opacity-70', !active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      applyMapFilters();
     }
 
     function clearAllFilters() {
-        currentFilter.type = null;
-        currentFilter.area = null;
-        document.querySelectorAll('.filter-btn-type, .filter-btn-area').forEach(btn => {
-            btn.classList.remove('opacity-100', 'shadow-sm');
-            btn.classList.add('opacity-70');
-        });
-        applyMapFilters();
+      currentFilter.type = null;
+      currentFilter.area = null;
+
+      document.querySelectorAll('.filter-btn-type, .filter-btn-area').forEach(btn => {
+        btn.classList.remove('opacity-100', 'shadow-sm');
+        btn.classList.add('opacity-70');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+
+      applyMapFilters();
     }
 
     function applyMapFilters() {
-        const items = document.querySelectorAll('.map-item');
-        const sections = document.querySelectorAll('#container-view-type section');
+      const items = document.querySelectorAll('#container-view-type .map-item');
+      const sections = document.querySelectorAll('#container-view-type > section');
+      const hasTypeFilter = currentFilter.type !== null;
+      const hasAreaFilter = currentFilter.area !== null;
+      let visibleCount = 0;
 
-        const hasTypeFilter = currentFilter.type !== null;
-        const hasAreaFilter = currentFilter.area !== null;
+      items.forEach(item => {
+        const itemType = (item.dataset.type || '').trim();
+        const itemArea = (item.dataset.area || '').trim();
+        const matchType = !hasTypeFilter || itemType === currentFilter.type;
+        const matchArea = !hasAreaFilter || itemArea === currentFilter.area;
+        const showItem = matchType && matchArea;
 
-        items.forEach(item => {
-            const itemType = item.getAttribute('data-type');
-            const itemArea = item.getAttribute('data-area');
+        // 用 hidden class + aria-hidden 雙重控制，確保「富士山區」不會再混入 other/住宿。
+        item.classList.toggle('hidden', !showItem);
+        item.setAttribute('aria-hidden', showItem ? 'false' : 'true');
+        if (showItem) visibleCount++;
+      });
 
-            const matchType = !hasTypeFilter || (itemType === currentFilter.type);
-            // 有選地區時必須精準符合該地區；'other' 不再視為所有地區都符合。
-            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
+      sections.forEach(section => {
+        const hasVisible = Array.from(section.querySelectorAll('.map-item'))
+          .some(item => !item.classList.contains('hidden'));
+        section.classList.toggle('hidden', !hasVisible);
+      });
 
-            let showItem = false;
-            if (!hasTypeFilter && !hasAreaFilter) {
-                showItem = true;
-            } else {
-                showItem = matchType && matchArea;
-            }
-
-            item.style.display = showItem ? 'flex' : 'none';
-        });
-
-        sections.forEach(section => {
-            let hasVisible = false;
-            section.querySelectorAll('.map-item').forEach(el => {
-                if (el.style.display !== 'none') hasVisible = true;
-            });
-            section.style.display = hasVisible ? 'block' : 'none';
-        });
+      let emptyState = document.getElementById('map-filter-empty');
+      if (!emptyState) {
+        emptyState = document.createElement('div');
+        emptyState.id = 'map-filter-empty';
+        emptyState.className = 'hidden bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100';
+        emptyState.innerHTML = `
+          <i class="fa-solid fa-filter-circle-xmark text-slate-300 text-2xl"></i>
+          <p class="font-bold text-slate-600 text-xs mt-2">沒有符合條件的地點</p>
+          <p class="text-[10px] text-slate-400 mt-1">請嘗試清除其中一個篩選條件</p>
+        `;
+        const content = document.getElementById('container-view-type');
+        if (content && content.parentNode) content.parentNode.insertBefore(emptyState, content.nextSibling);
+      }
+      emptyState.classList.toggle('hidden', visibleCount !== 0);
     }
 
-    // 切換內嵌新增表單的展開與收合
     function toggleAddBox() {
       const box = document.getElementById('inline-add-box');
-      box.classList.toggle('hidden');
+      if (box) box.classList.toggle('hidden');
     }
 
-    // 儲存新地點並自動歸類
     function saveNewItem() {
       const name = document.getElementById('input-name').value.trim();
       const link = document.getElementById('input-link').value.trim();
@@ -730,29 +750,41 @@
         return;
       }
 
-      // 建立新的 DOM 元素
-      const newItem = document.createElement('a');
-      newItem.href = link;
-      newItem.target = "_blank";
-      newItem.dataset.type = type;
-      newItem.dataset.area = area;
-      newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
-      newItem.innerHTML = `<span class="font-bold text-slate-800">${name}</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
-
-      // 自動插入至對應的屬性區塊中
-      const targetSectionList = document.querySelector(`#map-type-${type} .map-item-list`);
-      if (targetSectionList) {
-        targetSectionList.appendChild(newItem);
+      try {
+        new URL(link);
+      } catch (e) {
+        alert('請輸入有效的 Google Maps 網址！');
+        return;
       }
 
-      // 重新套用當前篩選，確保新項目如果符合條件會立刻顯示
-      applyMapFilters();
+      const newItem = document.createElement('a');
+      newItem.href = link;
+      newItem.target = '_blank';
+      newItem.rel = 'noopener noreferrer';
+      newItem.dataset.type = type;
+      newItem.dataset.area = area;
+      newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
+      newItem.innerHTML = `<span class="font-bold text-slate-800"></span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
+      newItem.querySelector('span').textContent = name;
 
-      // 收合表單並清空欄位
+      const targetSectionList = document.querySelector(`#map-type-${type} .map-item-list`);
+      if (targetSectionList) targetSectionList.appendChild(newItem);
+
+      applyMapFilters();
       toggleAddBox();
       document.getElementById('input-name').value = '';
       document.getElementById('input-link').value = '';
     }
+
+    // DOM 完成後一定再跑一次，避免第一次 Firebase callback 太早而沒有更新 UI。
+    window.addEventListener('DOMContentLoaded', () => {
+      window.appDomReady = true;
+      if (window.cloudDataReady && typeof window.renderAllPages === 'function') {
+        window.renderAllPages();
+      } else {
+        applyMapFilters();
+      }
+    });
   </script>
 
 
@@ -937,6 +969,10 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       setCurrentDateTimeInput();
+      window.appDomReady = true;
+      if (window.cloudDataReady && typeof window.renderAllPages === 'function') {
+        window.renderAllPages();
+      }
     });
 
     function setCurrentDateTimeInput() {
