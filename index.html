@@ -40,13 +40,13 @@
       { day: 2, date: '11.29 SUN', title: '自由探索行程', items: [] },
       { day: 3, date: '11.30 MON', title: '自由探索行程', items: [] },
       { day: 4, date: '12.01 TUE', title: '鎌倉一日遊 ➔ 七里濱拍富士山', items: [
-        { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min / ¥260)', cost: 260 },
+        { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min)', cost: 260 },
         { time: '12:00', title: '七里濱海岸 拍富士山秘境', desc: '推薦美食：Cafe Yoridocoro / Bills / Windera Cafe', cost: 0 }
       ]},
       { day: 5, date: '12.02 WED', title: '自由探索行程', items: [] },
       { day: 6, date: '12.03 THU', title: '自由探索行程', items: [] },
       { day: 7, date: '12.04 FRI', title: '山中湖富士山景觀之旅', items: [
-        { time: '08:00', title: '高速巴士：新宿 ➔ 山中湖平野', desc: '車程 2h25m / 車資 ¥2,100', cost: 2100 },
+        { time: '08:00', title: '高速巴士：新宿 ➔ 山中湖平野', desc: '車程 2h25m', cost: 2100 },
         { time: '11:20', title: '長池親水公園 ➔ 午餐：THE PARK', desc: '', cost: 0 },
         { time: '13:00', title: '白鳥濱 ➔ 淺間神社 ➔ Lawson 打卡點', desc: '', cost: 0 }
       ]},
@@ -55,26 +55,34 @@
       { day: 10, date: '12.07 MON', title: '自由探索行程', items: [] },
       { day: 11, date: '12.08 TUE', title: '自由探索行程', items: [] },
       { day: 12, date: '12.09 WED', title: '東京迪士尼海洋 DisneySea', items: [
-        { time: '08:00', title: '入園與搶 DPA 尊享卡', desc: '電車：市區 - 舞濱往返 (約 ¥800)', cost: 800 }
+        { time: '08:00', title: '入園與搶 DPA 尊享卡', desc: '電車：市區 - 舞濱往返', cost: 800 }
       ]},
       { day: 13, date: '12.10 THU', title: '自由探索行程', items: [] },
       { day: 14, date: '12.11 FRI', title: '自由探索行程', items: [] },
       { day: 15, date: '12.12 SAT', title: '自由探索行程 / 伴手禮最後採買', items: [] },
       { day: 16, date: '12.13 SUN', title: '成田機場 ➔ 返台', items: [
-        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
+        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程', cost: 1194 },
         { time: '11:25', title: '✈️ 台灣虎航 IT201 起飛返台', desc: '', cost: 0 }
       ]}
     ];
 
     const defaultPrep = [
-      { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
+      { id: 1, text: '護照', checked: false },
       { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
-      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
+      { id: 3, text: '日幣現金 / 信用卡', checked: false }
+      { id: 4, text: '保險', checked: false }
+      { id: 5, text: '衣服', checked: false }
+      { id: 6, text: '隱眼 / 眼鏡', checked: false }
+      { id: 7, text: '牙刷', checked: false }
+      { id: 8, text: '充電線 / 行充', checked: false }
+      { id: 9, text: '電棒', checked: false }      
+      { id: 10, text: '藥藥', checked: false }
+      { id: 11, text: '化妝品 (*保濕)', checked: false }
     ];
 
     const defaultTicket = [
-      { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
-      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
+      { id: 12, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
+      { id: 13, text: '東京迪士尼海洋門票', checked: false }
     ];
 
     // 全域資料變數
