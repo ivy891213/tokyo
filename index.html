@@ -93,65 +93,59 @@
     let isCloudLoaded = false;
     const tripRef = ref(db, 'tokyo_trip_data');
 
-    // 雲端資料是否已完成第一次同步。Firebase callback 可能早於頁面下方的 render 函式執行，
-    // 所以必須等 DOM 與所有函式都 ready 後再統一 render，避免首頁卡在 0 / 0。
-    window.cloudDataReady = false;
-    window.appDomReady = false;
-
-    function renderAllPages() {
-      if (!window.appDomReady) return;
-      if (typeof renderTimeline === 'function') renderTimeline();
-      if (typeof renderPrepList === 'function') renderPrepList();
-      if (typeof renderTicketList === 'function') renderTicketList();
-      if (typeof updateAllProgressUI === 'function') updateAllProgressUI();
-      if (typeof calculateTransportExpenses === 'function') calculateTransportExpenses();
-      if (typeof updateBudgetUI === 'function') updateBudgetUI();
-      if (typeof applyMapFilters === 'function') applyMapFilters();
-    }
-    window.renderAllPages = renderAllPages;
-
     // 監聽雲端資料變更
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
       let shouldRepairDefaults = false;
 
       if (data) {
-        window.itineraryData = Array.isArray(data.itinerary) && data.itinerary.length > 0
-          ? data.itinerary : structuredClone(defaultItinerary);
-        window.prepList = Array.isArray(data.prep) && data.prep.length > 0
-          ? data.prep : structuredClone(defaultPrep);
-        window.ticketList = Array.isArray(data.ticket) && data.ticket.length > 0
-          ? data.ticket : structuredClone(defaultTicket);
+        window.itineraryData = Array.isArray(data.itinerary) && data.itinerary.length > 0 ? data.itinerary : defaultItinerary;
+        window.prepList = Array.isArray(data.prep) && data.prep.length > 0 ? data.prep : defaultPrep;
+        window.ticketList = Array.isArray(data.ticket) && data.ticket.length > 0 ? data.ticket : defaultTicket;
         window.expenses = Array.isArray(data.expenses) ? data.expenses : [];
 
+        // Firebase 裡若存在空清單，視為舊資料，立即補回預設清單。
         shouldRepairDefaults = !Array.isArray(data.prep) || data.prep.length === 0 ||
                                !Array.isArray(data.ticket) || data.ticket.length === 0;
       } else {
-        window.itineraryData = structuredClone(defaultItinerary);
-        window.prepList = structuredClone(defaultPrep);
-        window.ticketList = structuredClone(defaultTicket);
+        window.itineraryData = defaultItinerary;
+        window.prepList = defaultPrep;
+        window.ticketList = defaultTicket;
         window.expenses = [];
         shouldRepairDefaults = true;
       }
 
       isCloudLoaded = true;
-      window.cloudDataReady = true;
-
       if (shouldRepairDefaults) saveToFirebase();
-      renderAllPages();
+
+      // 通知主頁面：雲端資料已載入。
+      // 不直接在這裡呼叫 render，避免 Firebase callback 比下面的 UI script 更早執行，
+      // 導致預設行程／行前清單其實有資料，但前端沒有重新繪製。
+      window.dispatchEvent(new CustomEvent('tokyo-data-ready'));
     });
 
     // 儲存至 Firebase 函式
     window.saveToFirebase = function() {
-      if (!isCloudLoaded) return; // 尚未從雲端讀取完成前禁止寫入，避免覆蓋
-      set(tripRef, {
-        itinerary: window.itineraryData,
-        prep: window.prepList,
-        ticket: window.ticketList,
-        expenses: window.expenses
+      if (!isCloudLoaded) {
+        console.warn('Firebase 尚未完成第一次載入，略過本次寫入。');
+        return Promise.resolve(false);
+      }
+
+      // JSON 深拷貝避免把 Firebase snapshot / UI 物件的參照直接傳出去。
+      const payload = JSON.parse(JSON.stringify({
+        itinerary: Array.isArray(window.itineraryData) ? window.itineraryData : defaultItinerary,
+        prep: Array.isArray(window.prepList) ? window.prepList : defaultPrep,
+        ticket: Array.isArray(window.ticketList) ? window.ticketList : defaultTicket,
+        expenses: Array.isArray(window.expenses) ? window.expenses : []
+      }));
+
+      return set(tripRef, payload).then(() => {
+        console.log('Firebase 資料已成功寫入');
+        return true;
       }).catch((error) => {
-        console.error("寫入雲端失敗: ", error);
-        alert("網路連線異常，資料同步可能失敗！");
+        console.error('寫入雲端失敗：', error);
+        alert('Firebase 寫入失敗，請打開瀏覽器主控台確認權限或網路狀態。');
+        return false;
       });
     };
   </script>
@@ -659,86 +653,85 @@
     <!-- JavaScript 邏輯：單選篩選 + 內嵌表單新增並自動分類 -->
   <script>
     const currentFilter = {
-      type: null,
-      area: null
+        type: null,
+        area: null
     };
 
-    // 地圖篩選採「嚴格 AND」：type 與 area 都有選擇時必須同時完全相等。
-    // 不做名稱模糊搜尋，也不把 other 當成萬用分類。
-    function selectFilter(category, value) {
-      currentFilter[category] = currentFilter[category] === value ? null : value;
+    function syncFilterButtonStates() {
+        document.querySelectorAll('.filter-btn-type').forEach(btn => {
+            const active = currentFilter.type === btn.dataset.val;
+            btn.classList.toggle('opacity-100', active);
+            btn.classList.toggle('shadow-sm', active);
+            btn.classList.toggle('opacity-70', !active);
+        });
+        document.querySelectorAll('.filter-btn-area').forEach(btn => {
+            const active = currentFilter.area === btn.dataset.val;
+            btn.classList.toggle('opacity-100', active);
+            btn.classList.toggle('shadow-sm', active);
+            btn.classList.toggle('opacity-70', !active);
+        });
+    }
 
-      document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
-        const active = currentFilter[category] === btn.dataset.val;
-        btn.classList.toggle('opacity-100', active);
-        btn.classList.toggle('shadow-sm', active);
-        btn.classList.toggle('opacity-70', !active);
-        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-
-      applyMapFilters();
+    function selectFilter(category, value, btnElement) {
+        if (currentFilter[category] === value) {
+            currentFilter[category] = null;
+            btnElement.classList.remove('opacity-100', 'shadow-sm');
+            btnElement.classList.add('opacity-70');
+        } else {
+            document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
+                btn.classList.remove('opacity-100', 'shadow-sm');
+                btn.classList.add('opacity-70');
+            });
+            currentFilter[category] = value;
+            btnElement.classList.remove('opacity-70');
+            btnElement.classList.add('opacity-100', 'shadow-sm');
+        }
+        applyMapFilters();
     }
 
     function clearAllFilters() {
-      currentFilter.type = null;
-      currentFilter.area = null;
-
-      document.querySelectorAll('.filter-btn-type, .filter-btn-area').forEach(btn => {
-        btn.classList.remove('opacity-100', 'shadow-sm');
-        btn.classList.add('opacity-70');
-        btn.setAttribute('aria-pressed', 'false');
-      });
-
-      applyMapFilters();
+        currentFilter.type = null;
+        currentFilter.area = null;
+        document.querySelectorAll('.filter-btn-type, .filter-btn-area').forEach(btn => {
+            btn.classList.remove('opacity-100', 'shadow-sm');
+            btn.classList.add('opacity-70');
+        });
+        applyMapFilters();
     }
 
     function applyMapFilters() {
-      const items = document.querySelectorAll('#container-view-type .map-item');
-      const sections = document.querySelectorAll('#container-view-type > section');
-      const hasTypeFilter = currentFilter.type !== null;
-      const hasAreaFilter = currentFilter.area !== null;
-      let visibleCount = 0;
+        const items = document.querySelectorAll('.map-item');
+        const sections = document.querySelectorAll('#container-view-type section');
 
-      items.forEach(item => {
-        const itemType = (item.dataset.type || '').trim();
-        const itemArea = (item.dataset.area || '').trim();
-        const matchType = !hasTypeFilter || itemType === currentFilter.type;
-        const matchArea = !hasAreaFilter || itemArea === currentFilter.area;
-        const showItem = matchType && matchArea;
+        items.forEach(item => {
+            const itemType = (item.dataset.type || '').trim();
+            const itemArea = (item.dataset.area || '').trim();
 
-        // 用 hidden class + aria-hidden 雙重控制，確保「富士山區」不會再混入 other/住宿。
-        item.classList.toggle('hidden', !showItem);
-        item.setAttribute('aria-hidden', showItem ? 'false' : 'true');
-        if (showItem) visibleCount++;
-      });
+            // 兩個條件都存在時必須同時符合（AND），不使用模糊搜尋、不使用 OR。
+            const matchType = currentFilter.type === null || itemType === currentFilter.type;
+            const matchArea = currentFilter.area === null || itemArea === currentFilter.area;
+            const showItem = matchType && matchArea;
 
-      sections.forEach(section => {
-        const hasVisible = Array.from(section.querySelectorAll('.map-item'))
-          .some(item => !item.classList.contains('hidden'));
-        section.classList.toggle('hidden', !hasVisible);
-      });
+            item.classList.toggle('hidden', !showItem);
+            item.style.display = showItem ? 'flex' : 'none';
+        });
 
-      let emptyState = document.getElementById('map-filter-empty');
-      if (!emptyState) {
-        emptyState = document.createElement('div');
-        emptyState.id = 'map-filter-empty';
-        emptyState.className = 'hidden bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100';
-        emptyState.innerHTML = `
-          <i class="fa-solid fa-filter-circle-xmark text-slate-300 text-2xl"></i>
-          <p class="font-bold text-slate-600 text-xs mt-2">沒有符合條件的地點</p>
-          <p class="text-[10px] text-slate-400 mt-1">請嘗試清除其中一個篩選條件</p>
-        `;
-        const content = document.getElementById('container-view-type');
-        if (content && content.parentNode) content.parentNode.insertBefore(emptyState, content.nextSibling);
-      }
-      emptyState.classList.toggle('hidden', visibleCount !== 0);
+        sections.forEach(section => {
+            const visibleItems = Array.from(section.querySelectorAll('.map-item'))
+                .filter(el => !el.classList.contains('hidden'));
+            section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+        });
+
+        syncFilterButtonStates();
     }
 
+    // 切換內嵌新增表單的展開與收合
     function toggleAddBox() {
       const box = document.getElementById('inline-add-box');
-      if (box) box.classList.toggle('hidden');
+      box.classList.toggle('hidden');
     }
 
+    // 儲存新地點並自動歸類
     function saveNewItem() {
       const name = document.getElementById('input-name').value.trim();
       const link = document.getElementById('input-link').value.trim();
@@ -750,41 +743,29 @@
         return;
       }
 
-      try {
-        new URL(link);
-      } catch (e) {
-        alert('請輸入有效的 Google Maps 網址！');
-        return;
-      }
-
+      // 建立新的 DOM 元素
       const newItem = document.createElement('a');
       newItem.href = link;
-      newItem.target = '_blank';
-      newItem.rel = 'noopener noreferrer';
+      newItem.target = "_blank";
       newItem.dataset.type = type;
       newItem.dataset.area = area;
-      newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
-      newItem.innerHTML = `<span class="font-bold text-slate-800"></span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
-      newItem.querySelector('span').textContent = name;
+      newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
+      newItem.innerHTML = `<span class="font-bold text-slate-800">${name}</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
 
+      // 自動插入至對應的屬性區塊中
       const targetSectionList = document.querySelector(`#map-type-${type} .map-item-list`);
-      if (targetSectionList) targetSectionList.appendChild(newItem);
+      if (targetSectionList) {
+        targetSectionList.appendChild(newItem);
+      }
 
+      // 重新套用當前篩選，確保新項目如果符合條件會立刻顯示
       applyMapFilters();
+
+      // 收合表單並清空欄位
       toggleAddBox();
       document.getElementById('input-name').value = '';
       document.getElementById('input-link').value = '';
     }
-
-    // DOM 完成後一定再跑一次，避免第一次 Firebase callback 太早而沒有更新 UI。
-    window.addEventListener('DOMContentLoaded', () => {
-      window.appDomReady = true;
-      if (window.cloudDataReady && typeof window.renderAllPages === 'function') {
-        window.renderAllPages();
-      } else {
-        applyMapFilters();
-      }
-    });
   </script>
 
 
@@ -964,16 +945,36 @@
   </nav>
 
   <script>
-    let currentModalDayIndex = null;
-    let currentStep = 1;
+    // ===== UI 初始化 =====
+    // Firebase 是 type="module"，它的 onValue callback 有可能在這個 script
+    // 的函式宣告完成前就回來，因此統一透過事件 + DOMContentLoaded 初始化。
+    function renderAllTripData() {
+      if (!window.itineraryData) window.itineraryData = [];
+      if (!window.prepList) window.prepList = [];
+      if (!window.ticketList) window.ticketList = [];
+      if (!window.expenses) window.expenses = [];
 
+      if (typeof renderTimeline === 'function') renderTimeline();
+      if (typeof renderPrepList === 'function') renderPrepList();
+      if (typeof renderTicketList === 'function') renderTicketList();
+      if (typeof updateAllProgressUI === 'function') updateAllProgressUI();
+      if (typeof calculateTransportExpenses === 'function') calculateTransportExpenses();
+      if (typeof updateBudgetUI === 'function') updateBudgetUI();
+    }
+
+    window.addEventListener('tokyo-data-ready', renderAllTripData);
     window.addEventListener('DOMContentLoaded', () => {
       setCurrentDateTimeInput();
-      window.appDomReady = true;
-      if (window.cloudDataReady && typeof window.renderAllPages === 'function') {
-        window.renderAllPages();
-      }
+      // 如果 Firebase 已經先載入完成，DOMContentLoaded 再補一次 render。
+      renderAllTripData();
     });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      applyMapFilters();
+    });
+
+    let currentModalDayIndex = null;
+    let currentStep = 1;
 
     function setCurrentDateTimeInput() {
       const now = new Date();
