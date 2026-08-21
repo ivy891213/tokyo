@@ -97,10 +97,25 @@
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        window.itineraryData = data.itinerary || defaultItinerary;
-        window.prepList = data.prep || defaultPrep;
-        window.ticketList = data.ticket || defaultTicket;
-        window.expenses = data.expenses || [];
+        const hasItinerary = Array.isArray(data.itinerary) && data.itinerary.length > 0;
+        const hasPrep = Array.isArray(data.prep) && data.prep.length > 0;
+        const hasTicket = Array.isArray(data.ticket) && data.ticket.length > 0;
+        const hasExpenses = Array.isArray(data.expenses);
+
+        window.itineraryData = hasItinerary ? data.itinerary : defaultItinerary;
+        window.prepList = hasPrep ? data.prep : defaultPrep;
+        window.ticketList = hasTicket ? data.ticket : defaultTicket;
+        window.expenses = hasExpenses ? data.expenses : [];
+
+        // 舊資料可能已經把清單存成空陣列；自動補回預設清單並同步到 Firebase。
+        if (!hasItinerary || !hasPrep || !hasTicket || !hasExpenses) {
+          set(tripRef, {
+            itinerary: window.itineraryData,
+            prep: window.prepList,
+            ticket: window.ticketList,
+            expenses: window.expenses
+          }).catch((error) => console.error('補回預設資料失敗:', error));
+        }
       } else if (!isCloudLoaded) {
         // 如果雲端真的完全沒有資料，才寫入預設值
         window.itineraryData = defaultItinerary;
