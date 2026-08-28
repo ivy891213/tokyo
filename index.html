@@ -40,13 +40,13 @@
       { day: 2, date: '11.29 SUN', title: '自由探索行程', items: [] },
       { day: 3, date: '11.30 MON', title: '自由探索行程', items: [] },
       { day: 4, date: '12.01 TUE', title: '鎌倉一日遊 ➔ 七里濱拍富士山', items: [
-        { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min)', cost: 260 },
+        { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min / ¥260)', cost: 260 },
         { time: '12:00', title: '七里濱海岸 拍富士山秘境', desc: '推薦美食：Cafe Yoridocoro / Bills / Windera Cafe', cost: 0 }
       ]},
       { day: 5, date: '12.02 WED', title: '自由探索行程', items: [] },
       { day: 6, date: '12.03 THU', title: '自由探索行程', items: [] },
       { day: 7, date: '12.04 FRI', title: '山中湖富士山景觀之旅', items: [
-        { time: '08:00', title: '高速巴士：新宿 ➔ 山中湖平野', desc: '車程 2h25m', cost: 2100 },
+        { time: '08:00', title: '高速巴士：新宿 ➔ 山中湖平野', desc: '車程 2h25m / 車資 ¥2,100', cost: 2100 },
         { time: '11:20', title: '長池親水公園 ➔ 午餐：THE PARK', desc: '', cost: 0 },
         { time: '13:00', title: '白鳥濱 ➔ 淺間神社 ➔ Lawson 打卡點', desc: '', cost: 0 }
       ]},
@@ -55,33 +55,26 @@
       { day: 10, date: '12.07 MON', title: '自由探索行程', items: [] },
       { day: 11, date: '12.08 TUE', title: '自由探索行程', items: [] },
       { day: 12, date: '12.09 WED', title: '東京迪士尼海洋 DisneySea', items: [
-        { time: '08:00', title: '入園與搶 DPA 尊享卡', desc: '電車：市區 - 舞濱往返', cost: 800 }
+        { time: '08:00', title: '入園與搶 DPA 尊享卡', desc: '電車：市區 - 舞濱往返 (約 ¥800)', cost: 800 }
       ]},
       { day: 13, date: '12.10 THU', title: '自由探索行程', items: [] },
       { day: 14, date: '12.11 FRI', title: '自由探索行程', items: [] },
       { day: 15, date: '12.12 SAT', title: '自由探索行程 / 伴手禮最後採買', items: [] },
       { day: 16, date: '12.13 SUN', title: '成田機場 ➔ 返台', items: [
-        { time: '09:25', title: '抵達成天機場 T2', desc: '京成成田電鐵 skyaccess 回程', cost: 1194 },
+        { time: '09:25', title: '抵達咸田機場 T2', desc: '京成成田 skyaccess 回程 (¥1,194)', cost: 1194 },
         { time: '11:25', title: '✈️ 台灣虎航 IT201 起飛返台', desc: '', cost: 0 }
       ]}
     ];
 
     const defaultPrep = [
-  { id: 1, text: '護照', checked: false },
-  { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
-  { id: 3, text: '日幣現金 / 信用卡', checked: false },
-  { id: 4, text: '保險', checked: false },
-  { id: 5, text: '衣服', checked: false },
-  { id: 6, text: '隱眼 / 眼鏡', checked: false },
-  { id: 7, text: '牙刷', checked: false },
-  { id: 8, text: '充電線 / 行充', checked: false },
-  { id: 9, text: '電棒', checked: false },
-  { id: 10, text: '藥藥', checked: false },
-  { id: 11, text: '化妝品 (*保濕)', checked: false }
-];
+      { id: 1, text: '護照正本 (確認6個月以上效期)', checked: false },
+      { id: 2, text: 'Visit Japan Web 入境填寫', checked: false },
+      { id: 3, text: '日幣現金 / 信用卡 / 保險單', checked: false }
+    ];
+
     const defaultTicket = [
-      { id: 12, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
-      { id: 13, text: '東京迪士尼海洋門票', checked: false }
+      { id: 10, text: '澀谷 SKY 展望台門票 (10/31 23:00開放)', checked: false },
+      { id: 11, text: '東京迪士尼海洋門票 / DPA準備', checked: false }
     ];
 
     // 全域資料變數
@@ -90,78 +83,52 @@
     window.ticketList = [];
     window.expenses = [];
 
-    // ===== Firebase / 資料初始化 =====
-    // 修改這個版本號時，會把下面的 default 資料「完整寫入」Firebase 一次。
-    // 這次使用 v3，目的就是把你程式碼裡最新的 16 天行程與 11 項行前準備正式同步到雲端。
-    const DEFAULT_DATA_VERSION = 3;
     let isCloudLoaded = false;
-    let isApplyingDefaults = false;
     const tripRef = ref(db, 'tokyo_trip_data');
 
-    function cloneDefaults() {
-      return {
-        itinerary: JSON.parse(JSON.stringify(defaultItinerary)),
-        prep: JSON.parse(JSON.stringify(defaultPrep)),
-        ticket: JSON.parse(JSON.stringify(defaultTicket)),
-        expenses: []
-      };
-    }
-
-    // 儲存至 Firebase。一定等資料讀取完成後才能寫入。
-    window.saveToFirebase = async function() {
-      if (!isCloudLoaded) {
-        console.warn('[Firebase] 尚未完成讀取，取消這次寫入');
-        return false;
-      }
-      try {
-        await set(tripRef, {
-          dataVersion: DEFAULT_DATA_VERSION,
-          itinerary: window.itineraryData || [],
-          prep: window.prepList || [],
-          ticket: window.ticketList || [],
-          expenses: window.expenses || []
-        });
-        console.log('[Firebase] 資料已成功寫入 tokyo_trip_data');
-        return true;
-      } catch (error) {
-        console.error('[Firebase] 寫入雲端失敗:', error);
-        alert('Firebase 寫入失敗，請檢查網路或 Firebase Database Rules。');
-        return false;
-      }
-    };
-
-    function notifyUIDataReady() {
-      window.__firebaseReady = true;
-      window.dispatchEvent(new CustomEvent('firebase-data-ready'));
-    }
-
     // 監聽雲端資料變更
-    onValue(tripRef, async (snapshot) => {
+    onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
-      const needsDefaultMigration = !data || data.dataVersion !== DEFAULT_DATA_VERSION;
-
-      if (needsDefaultMigration && !isApplyingDefaults) {
-        // 這是第一次套用 v3：以目前程式碼中的 default 資料為準，
-        // 直接建立一份完整的 Firebase 資料，避免舊的空資料/舊版本把畫面蓋掉。
-        isApplyingDefaults = true;
-        const defaults = cloneDefaults();
-        window.itineraryData = defaults.itinerary;
-        window.prepList = defaults.prep;
-        window.ticketList = defaults.ticket;
-        window.expenses = defaults.expenses;
-        isCloudLoaded = true;
-        await window.saveToFirebase();
-        isApplyingDefaults = false;
-      } else if (data && data.dataVersion === DEFAULT_DATA_VERSION) {
-        window.itineraryData = Array.isArray(data.itinerary) ? data.itinerary : [];
-        window.prepList = Array.isArray(data.prep) ? data.prep : [];
-        window.ticketList = Array.isArray(data.ticket) ? data.ticket : [];
-        window.expenses = Array.isArray(data.expenses) ? data.expenses : [];
-        isCloudLoaded = true;
+      if (data) {
+        window.itineraryData = data.itinerary || defaultItinerary;
+        window.prepList = data.prep || defaultPrep;
+        window.ticketList = data.ticket || defaultTicket;
+        window.expenses = data.expenses || [];
+      } else if (!isCloudLoaded) {
+        // 如果雲端真的完全沒有資料，才寫入預設值
+        window.itineraryData = defaultItinerary;
+        window.prepList = defaultPrep;
+        window.ticketList = defaultTicket;
+        window.expenses = [];
+        saveToFirebase();
       }
 
-      notifyUIDataReady();
+      isCloudLoaded = true;
+
+      // 重新渲染畫面
+      if (typeof renderTimeline === 'function') {
+        renderTimeline();
+        renderPrepList();
+        renderTicketList();
+        updateAllProgressUI();
+        calculateTransportExpenses();
+        updateBudgetUI();
+      }
     });
+
+    // 儲存至 Firebase 函式
+    window.saveToFirebase = function() {
+      if (!isCloudLoaded) return; // 尚未從雲端讀取完成前禁止寫入，避免覆蓋
+      set(tripRef, {
+        itinerary: window.itineraryData,
+        prep: window.prepList,
+        ticket: window.ticketList,
+        expenses: window.expenses
+      }).catch((error) => {
+        console.error("寫入雲端失敗: ", error);
+        alert("網路連線異常，資料同步可能失敗！");
+      });
+    };
   </script>
 
   <style>
@@ -169,9 +136,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
-<style>
-    html { font-size: 103.125%; }
-</style>
 </head>
 <body class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
@@ -710,8 +674,7 @@
             const itemArea = item.getAttribute('data-area');
 
             const matchType = !hasTypeFilter || (itemType === currentFilter.type);
-            // 有選地區時必須精準符合該地區；'other' 不再視為所有地區都符合。
-            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
+            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area || itemArea === 'other');
 
             let showItem = false;
             if (!hasTypeFilter && !hasAreaFilter) {
@@ -955,34 +918,8 @@
     let currentModalDayIndex = null;
     let currentStep = 1;
 
-    function renderAllDataUI() {
-      // Firebase 資料與所有 DOM 都準備好後，統一 render 一次。
-      if (!Array.isArray(window.itineraryData)) window.itineraryData = [];
-      if (!Array.isArray(window.prepList)) window.prepList = [];
-      if (!Array.isArray(window.ticketList)) window.ticketList = [];
-      if (!Array.isArray(window.expenses)) window.expenses = [];
-
-      renderTimeline();
-      renderPrepList();
-      renderTicketList();
-      updateAllProgressUI();
-      calculateTransportExpenses();
-      updateBudgetUI();
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
       setCurrentDateTimeInput();
-      // 如果 Firebase 已經先完成，就直接 render；否則等 firebase-data-ready。
-      if (window.__firebaseReady) renderAllDataUI();
-    });
-
-    window.addEventListener('firebase-data-ready', () => {
-      // module script 與一般 script 的執行順序不固定，使用事件確保一定會 render。
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', renderAllDataUI, { once: true });
-      } else {
-        renderAllDataUI();
-      }
     });
 
     function setCurrentDateTimeInput() {
@@ -1006,9 +943,25 @@
 
     function scrollToDay(elementId) {
       const target = document.getElementById(elementId);
+
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+
+      // 更新 D1～D16 天數按鈕：目前選中的天數變成深藍色
+      const dayButtons = document.querySelectorAll('#timeline-days-bar button');
+
+      dayButtons.forEach((btn, index) => {
+        const dayNumber = index + 1;
+
+        if (elementId === `day-${dayNumber}`) {
+          btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+          btn.classList.add('bg-[#2C4A5A]', 'text-white', 'shadow-sm');
+        } else {
+          btn.classList.remove('bg-[#2C4A5A]', 'text-white', 'shadow-sm');
+          btn.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+        }
+      });
     }
 
     function toggleTransportDetails() {
