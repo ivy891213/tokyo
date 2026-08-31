@@ -86,24 +86,58 @@
     let isCloudLoaded = false;
     const tripRef = ref(db, 'tokyo_trip_data');
 
+    // ===== Firebase 舊資料同步修正 =====
+    // Firebase 已經有資料時，不會重新套用 defaultItinerary，
+    // 因此只修改 defaultItinerary 會造成「程式碼是新的，但前端還是舊的」。
+    // 這裡針對 D4 做一次資料遷移，只修正標題，不會動到 D4 其他行程。
+    const TARGET_DAY4_TITLE = '鎌倉橫濱一日遊 ➔ 七里濱拍富士山 ➔ 橫濱';
+
+    function normalizeItineraryData(itinerary) {
+      let list = Array.isArray(itinerary)
+        ? itinerary
+        : (itinerary ? Object.values(itinerary) : []);
+
+      let changed = false;
+
+      const day4 = list.find(d => Number(d.day) === 4);
+      if (day4 && day4.title !== TARGET_DAY4_TITLE) {
+        day4.title = TARGET_DAY4_TITLE;
+        changed = true;
+      }
+
+      return { list, changed };
+    }
+
     // 監聽雲端資料變更
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
+      let shouldSyncFirebase = false;
+
       if (data) {
-        window.itineraryData = data.itinerary || defaultItinerary;
+        const normalized = normalizeItineraryData(data.itinerary || defaultItinerary);
+
+        window.itineraryData = normalized.list;
         window.prepList = data.prep || defaultPrep;
         window.ticketList = data.ticket || defaultTicket;
         window.expenses = data.expenses || [];
+
+        shouldSyncFirebase = normalized.changed;
       } else if (!isCloudLoaded) {
         // 如果雲端真的完全沒有資料，才寫入預設值
         window.itineraryData = defaultItinerary;
         window.prepList = defaultPrep;
         window.ticketList = defaultTicket;
         window.expenses = [];
-        saveToFirebase();
+        shouldSyncFirebase = true;
       }
 
+      // 先標記已完成雲端讀取，再寫回修正後資料。
+      // 避免 saveToFirebase() 因 isCloudLoaded=false 而被擋掉。
       isCloudLoaded = true;
+
+      if (shouldSyncFirebase) {
+        saveToFirebase();
+      }
 
       // 重新渲染畫面
       if (typeof renderTimeline === 'function') {
