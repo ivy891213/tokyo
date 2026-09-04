@@ -157,9 +157,9 @@
 
       isMapCloudLoaded = true;
 
-      if (typeof renderCustomMapPlaces === 'function') {
-        renderCustomMapPlaces();
-      }
+      if (typeof window.renderCustomMapPlaces === 'function') {
+    window.renderCustomMapPlaces();
+}
     }, (error) => {
       console.error("地圖地點讀取失敗:", error);
       isMapCloudLoaded = false;
