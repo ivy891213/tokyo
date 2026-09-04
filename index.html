@@ -888,8 +888,8 @@ window.renderCustomMapPlaces();
     window.toggleAddBox = toggleAddBox;
 
     // 從 Firebase 重新建立所有「使用者新增」地點的 DOM
-    function renderCustomMapPlaces() {
-      document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
+window.renderCustomMapPlaces = function() {
+  document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
 
       if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
 
@@ -906,19 +906,19 @@ window.renderCustomMapPlaces();
         newItem.dataset.type = place.type || '';
         newItem.dataset.area = place.area || '';
         newItem.dataset.customPlace = 'true';
-        newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
-// 在設定好 newItem 的 class 或 innerHTML 時，加入帶有刪除按鈕的結構
-newItem.innerHTML = `
-  <div class="flex items-center justify-between w-full">
-    <span>${place.name}</span>
-    <div class="flex items-center gap-1.5">
-      <span class="text-[10px] text-slate-400">${place.area || ''}</span>
-     <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.deleteOneMapPlaceFromFirebase('${place.id}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[10px] font-bold transition">
-        <i class="fa-solid fa-trash-can"></i>
-      </button>
-    </div>
-  </div>
-`;
+        newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between text-xs transition mb-2 group';
+
+        newItem.innerHTML = `
+          <div class="flex items-center gap-2 overflow-hidden">
+            <span class="font-bold text-slate-800 truncate">${place.name}</span>
+            <span class="text-[10px] text-slate-400 shrink-0">${place.area || ''}</span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.deleteOneMapPlaceFromFirebase('${place.id}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs transition" title="刪除地點">              <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
+          </div>
+        `;
         
         
         const title = document.createElement('span');
