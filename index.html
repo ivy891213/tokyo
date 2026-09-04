@@ -893,33 +893,34 @@ window.renderCustomMapPlaces = function() {
 
       if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
 
-     window.mapPlaces.forEach(place => {
+   window.mapPlaces.forEach(place => {
     if (!place || !place.name || !place.link) return;
 
     const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
     if (!targetSectionList) return;
 
-    const newItem = document.createElement('div');
+    const newItem = document.createElement('a');
+    newItem.href = place.link;
+    newItem.target = '_blank';
+    newItem.rel = 'noopener noreferrer';
     newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between text-xs transition mb-2 group';
     newItem.dataset.type = place.type || '';
     newItem.dataset.area = place.area || '';
     newItem.dataset.customPlace = 'true';
 
     newItem.innerHTML = `
-      <a href="${place.link}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 overflow-hidden grow pr-2">
+      <div class="flex items-center gap-2 overflow-hidden pr-2">
         <span class="font-bold text-slate-800 truncate">${place.name}</span>
         <span class="text-[10px] text-slate-400 shrink-0">${place.area || ''}</span>
-      </a>
+      </div>
       <div class="flex items-center gap-2 shrink-0">
         <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.deleteOneMapPlaceFromFirebase('${place.id}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs transition" title="刪除地點">
           <i class="fa-solid fa-trash-can"></i>
         </button>
-        <a href="${place.link}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-slate-600">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
+        <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
       </div>
     `;
-    
+
     targetSectionList.appendChild(newItem);
   });
         newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between text-xs transition mb-2 group';
