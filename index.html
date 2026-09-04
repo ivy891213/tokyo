@@ -853,13 +853,9 @@
       } catch (error) {
         console.error('saveNewItem error:', error);
         alert(
-          '新增失敗，資料沒有存進雲端。
-
-' +
+          '新增失敗，資料沒有存進雲端。\n\n' +
           '錯誤：' + (error?.message || error) +
-          '
-
-請確認 Firebase Realtime Database Rules 允許寫入。'
+          '\n\n請確認 Firebase Realtime Database Rules 允許寫入。'
         );
       } finally {
         if (saveBtn) {
