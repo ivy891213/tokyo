@@ -82,6 +82,9 @@
     window.prepList = [];
     window.ticketList = [];
     window.expenses = [];
+    // 使用獨立的 mapPlaces 儲存「前端新增的地點」。
+    // 原本寫入 DOM 的做法只存在目前瀏覽器畫面，重新整理/換裝置後就會消失。
+    window.mapPlaces = [];
 
     let isCloudLoaded = false;
     const tripRef = ref(db, 'tokyo_trip_data');
@@ -89,18 +92,22 @@
     // 監聽雲端資料變更
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
+
       if (data) {
-        window.itineraryData = data.itinerary || defaultItinerary;
-        window.prepList = data.prep || defaultPrep;
-        window.ticketList = data.ticket || defaultTicket;
-        window.expenses = data.expenses || [];
+        window.itineraryData = Array.isArray(data.itinerary) ? data.itinerary : defaultItinerary;
+        window.prepList = Array.isArray(data.prep) ? data.prep : defaultPrep;
+        window.ticketList = Array.isArray(data.ticket) ? data.ticket : defaultTicket;
+        window.expenses = Array.isArray(data.expenses) ? data.expenses : [];
+        window.mapPlaces = Array.isArray(data.mapPlaces) ? data.mapPlaces : [];
       } else if (!isCloudLoaded) {
-        // 如果雲端真的完全沒有資料，才寫入預設值
+        // Firebase 第一次沒有資料時，才建立完整初始資料。
         window.itineraryData = defaultItinerary;
         window.prepList = defaultPrep;
         window.ticketList = defaultTicket;
         window.expenses = [];
-        saveToFirebase();
+        window.mapPlaces = [];
+        // 此時 isCloudLoaded 還是 false，所以先直接寫入初始資料。
+        saveToFirebase(true);
       }
 
       isCloudLoaded = true;
@@ -110,24 +117,34 @@
         renderTimeline();
         renderPrepList();
         renderTicketList();
+        renderCustomMapPlaces();
         updateAllProgressUI();
         calculateTransportExpenses();
         updateBudgetUI();
       }
     });
 
-    // 儲存至 Firebase 函式
-    window.saveToFirebase = function() {
-      if (!isCloudLoaded) return; // 尚未從雲端讀取完成前禁止寫入，避免覆蓋
-      set(tripRef, {
+    // 儲存至 Firebase。
+    // force=true 只用於第一次建立 Firebase 資料。
+    window.saveToFirebase = function(force = false) {
+      if (!isCloudLoaded && !force) return; // 尚未從雲端讀取完成前禁止寫入，避免覆蓋
+
+      const payload = {
         itinerary: window.itineraryData,
         prep: window.prepList,
         ticket: window.ticketList,
-        expenses: window.expenses
-      }).catch((error) => {
-        console.error("寫入雲端失敗: ", error);
-        alert("網路連線異常，資料同步可能失敗！");
-      });
+        expenses: window.expenses,
+        mapPlaces: window.mapPlaces
+      };
+
+      set(tripRef, payload)
+        .then(() => {
+          console.log("Firebase 同步成功");
+        })
+        .catch((error) => {
+          console.error("寫入雲端失敗: ", error);
+          alert("網路連線異常，資料同步可能失敗，請稍後再試！");
+        });
     };
   </script>
 
@@ -704,7 +721,44 @@
       box.classList.toggle('hidden');
     }
 
-    // 儲存新地點並自動歸類
+    // 把 Firebase 裡的自訂地點重新畫到地圖清單。
+    // 注意：HTML 內原本的固定景點仍保留；這裡只管理「使用者新增」的地點。
+    function renderCustomMapPlaces() {
+      // 先移除上一輪由 Firebase 畫出的自訂地點，避免 onValue 觸發時重複。
+      document.querySelectorAll('.map-item[data-custom-place="true"]').forEach(el => el.remove());
+
+      (window.mapPlaces || []).forEach(place => {
+        const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
+        if (!targetSectionList) return;
+
+        const newItem = document.createElement('a');
+        newItem.href = place.link;
+        newItem.target = "_blank";
+        newItem.rel = "noopener noreferrer";
+        newItem.dataset.type = place.type;
+        newItem.dataset.area = place.area;
+        newItem.dataset.customPlace = "true";
+        newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = "font-bold text-slate-800";
+        nameSpan.textContent = place.name;
+
+        const icon = document.createElement('i');
+        icon.className = "fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]";
+
+        newItem.appendChild(nameSpan);
+        newItem.appendChild(icon);
+        targetSectionList.appendChild(newItem);
+      });
+
+      applyMapFilters();
+    }
+
+    // 儲存新地點：
+    // 1. 先寫入 window.mapPlaces
+    // 2. 再寫入 Firebase
+    // 3. Firebase onValue 收到資料後，所有裝置都會重新渲染
     function saveNewItem() {
       const name = document.getElementById('input-name').value.trim();
       const link = document.getElementById('input-link').value.trim();
@@ -716,28 +770,36 @@
         return;
       }
 
-      // 建立新的 DOM 元素
-      const newItem = document.createElement('a');
-      newItem.href = link;
-      newItem.target = "_blank";
-      newItem.dataset.type = type;
-      newItem.dataset.area = area;
-      newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
-      newItem.innerHTML = `<span class="font-bold text-slate-800">${name}</span><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i>`;
-
-      // 自動插入至對應的屬性區塊中
-      const targetSectionList = document.querySelector(`#map-type-${type} .map-item-list`);
-      if (targetSectionList) {
-        targetSectionList.appendChild(newItem);
+      // 基本網址檢查，避免把錯誤字串存進雲端。
+      try {
+        const url = new URL(link);
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          throw new Error('invalid protocol');
+        }
+      } catch (e) {
+        alert('請輸入有效的 Google Maps 網址！');
+        return;
       }
 
-      // 重新套用當前篩選，確保新項目如果符合條件會立刻顯示
-      applyMapFilters();
+      const newPlace = {
+        id: `place_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        name,
+        link,
+        type,
+        area,
+        createdAt: Date.now()
+      };
 
-      // 收合表單並清空欄位
+      window.mapPlaces.push(newPlace);
+
+      // 先立即畫面更新，再寫雲端。
+      renderCustomMapPlaces();
       toggleAddBox();
       document.getElementById('input-name').value = '';
       document.getElementById('input-link').value = '';
+
+      // 這次會真正把 mapPlaces 寫進 Firebase。
+      window.saveToFirebase();
     }
   </script>
 
@@ -941,6 +1003,11 @@
         btn.classList.add('text-slate-400');
       });
       document.getElementById('nav-btn-' + pageId).classList.replace('text-slate-400', 'text-[#2C4A5A]');
+
+      if (pageId === 'map' && typeof renderCustomMapPlaces === 'function') {
+        renderCustomMapPlaces();
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
