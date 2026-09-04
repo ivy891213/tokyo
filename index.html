@@ -851,8 +851,7 @@ window.deleteOneMapPlaceFromFirebase = async function(placeId) {
         // Firebase 寫入成功後才加入本機清單
         if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
         window.mapPlaces.push(newPlace);
-        renderCustomMapPlaces();
-
+window.renderCustomMapPlaces();
         nameInput.value = '';
         linkInput.value = '';
         document.getElementById('inline-add-box')?.classList.add('hidden');
