@@ -136,28 +136,29 @@
       showCloudStatus("雲端讀取失敗，請檢查 Firebase Rules", false);
     });
 
-    // ★ 專門監聽「使用者新增的地圖地點」
+    // ★ 監聽「使用者新增的地圖地點」
+    // Firebase 每個地點使用自己的 key，新增第二筆、第三筆都不會覆蓋前一筆。
     onValue(mapPlacesRef, (snapshot) => {
       const data = snapshot.val();
 
-      if (!data) {
+      if (!data || typeof data !== 'object') {
         window.mapPlaces = [];
-      } else if (Array.isArray(data)) {
-        window.mapPlaces = data.filter(Boolean);
-      } else if (typeof data === 'object') {
-        window.mapPlaces = Object.values(data).filter(Boolean);
       } else {
-        window.mapPlaces = [];
+        window.mapPlaces = Object.entries(data)
+          .map(([key, value]) => value ? ({ ...value, id: value.id || key }) : null)
+          .filter(Boolean)
+          .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
       }
 
       isMapCloudLoaded = true;
+
       if (typeof renderCustomMapPlaces === 'function') {
         renderCustomMapPlaces();
       }
     }, (error) => {
       console.error("地圖地點讀取失敗:", error);
       isMapCloudLoaded = false;
-      showCloudStatus("地圖同步失敗：Firebase Rules 不允許讀取", false);
+      showCloudStatus("地圖同步失敗：請檢查 Firebase Rules", false);
     });
 
     // 儲存主要資料
@@ -181,14 +182,23 @@
       });
     };
 
-    // ★ 儲存地圖自訂地點
-    window.saveMapPlacesToFirebase = function() {
+    // ★ 新增單一地圖地點：只寫入自己的 Firebase key，不會覆蓋其他地點
+    window.saveOneMapPlaceToFirebase = function(place) {
       if (!isMapCloudLoaded) {
         showCloudStatus("地圖雲端尚未載入完成，請稍候再試", false);
         return Promise.reject(new Error("Map cloud data not loaded"));
       }
 
-      return set(mapPlacesRef, window.mapPlaces).then(() => {
+      const placeRef = ref(db, 'tokyo_trip_data/mapPlaces/' + place.id);
+
+      return set(placeRef, {
+        id: place.id,
+        name: place.name,
+        link: place.link,
+        type: place.type,
+        area: place.area,
+        createdAt: place.createdAt
+      }).then(() => {
         showCloudStatus("地點已同步到雲端");
       }).catch((error) => {
         console.error("地圖地點寫入失敗:", error);
@@ -204,7 +214,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body data-build="firebase-map-sync-v2" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
+<body data-build="firebase-map-sync-v3" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
@@ -771,7 +781,7 @@
       box.classList.toggle('hidden');
     }
 
-    // 儲存新地點：先寫入 window.mapPlaces，再寫入 Firebase
+    // 儲存新地點：每一筆都有獨立 Firebase key
     async function saveNewItem() {
       const nameInput = document.getElementById('input-name');
       const linkInput = document.getElementById('input-link');
@@ -797,14 +807,13 @@
         return;
       }
 
-      if (!window.isMapCloudReadyForWrite || !isMapCloudLoaded) {
-        // isMapCloudLoaded 在 Firebase onValue 成功後才會變成 true
+      if (!isMapCloudLoaded) {
         alert('地圖雲端尚未準備完成，請等一下再按一次「完成」。');
         return;
       }
 
       const newPlace = {
-        id: 'place_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        id: 'place_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10),
         name: name,
         link: safeLink.href,
         type: type,
@@ -812,24 +821,27 @@
         createdAt: Date.now()
       };
 
+      // 先顯示，讓使用者立即看到；Firebase 成功後才視為真正儲存
       window.mapPlaces.push(newPlace);
-
-      // 先在畫面顯示，接著真正寫入 Firebase
       renderCustomMapPlaces();
 
       try {
-        await window.saveMapPlacesToFirebase();
+        await window.saveOneMapPlaceToFirebase(newPlace);
 
         toggleAddBox();
         nameInput.value = '';
         linkInput.value = '';
       } catch (error) {
-        // 寫入失敗時回復本次新增，避免畫面看起來成功但其實沒存
+        // Firebase 寫入失敗時移除本次本地暫存，避免看起來已成功
         window.mapPlaces = window.mapPlaces.filter(item => item.id !== newPlace.id);
         renderCustomMapPlaces();
-        alert('新增地點失敗，資料沒有寫進雲端。請檢查 Firebase Realtime Database Rules。');
+        alert('新增地點失敗：Firebase 沒有接受這筆資料。請檢查 Realtime Database Rules。');
       }
     }
+
+    // 確保 HTML 的 onclick 可以呼叫 module script 裡的函式
+    window.saveNewItem = saveNewItem;
+    window.toggleAddBox = toggleAddBox;
 
     // 從 Firebase 重新建立所有「使用者新增」地點的 DOM
     function renderCustomMapPlaces() {
