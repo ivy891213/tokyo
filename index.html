@@ -217,7 +217,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body data-build="firebase-map-sync-v5-ui-fix" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
+<body data-build="firebase-map-sync-v6-syntax-fix" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
@@ -847,13 +847,9 @@
       } catch (error) {
         console.error('saveNewItem error:', error);
         alert(
-          '新增失敗，資料沒有存進雲端。
-
-' +
+          '新增失敗，資料沒有存進雲端。\n\n' +
           '錯誤：' + (error?.message || error) +
-          '
-
-請確認 Firebase Realtime Database Rules 允許寫入。'
+          '\n\n請確認 Firebase Realtime Database Rules 允許寫入。'
         );
       } finally {
         if (saveBtn) {
