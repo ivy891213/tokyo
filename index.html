@@ -39,7 +39,7 @@
       ]},
       { day: 2, date: '11.29 SUN', title: '自由探索行程', items: [] },
       { day: 3, date: '11.30 MON', title: '自由探索行程', items: [] },
-      { day: 4, date: '12.01 TUE', title: '鎌倉橫濱一日遊 ➔ 七里濱拍富士山 ➔ 橫濱', items: [
+      { day: 4, date: '12.01 TUE', title: '鎌倉一日遊 ➔ 七里濱拍富士山', items: [
         { time: '09:00', title: '搭乘江之電前往鎌倉/七里濱', desc: '江之電：鎌倉 - 七里濱 (15min / ¥260)', cost: 260 },
         { time: '12:00', title: '七里濱海岸 拍富士山秘境', desc: '推薦美食：Cafe Yoridocoro / Bills / Windera Cafe', cost: 0 }
       ]},
@@ -86,58 +86,24 @@
     let isCloudLoaded = false;
     const tripRef = ref(db, 'tokyo_trip_data');
 
-    // ===== Firebase 舊資料同步修正 =====
-    // Firebase 已經有資料時，不會重新套用 defaultItinerary，
-    // 因此只修改 defaultItinerary 會造成「程式碼是新的，但前端還是舊的」。
-    // 這裡針對 D4 做一次資料遷移，只修正標題，不會動到 D4 其他行程。
-    const TARGET_DAY4_TITLE = '鎌倉橫濱一日遊 ➔ 七里濱拍富士山 ➔ 橫濱';
-
-    function normalizeItineraryData(itinerary) {
-      let list = Array.isArray(itinerary)
-        ? itinerary
-        : (itinerary ? Object.values(itinerary) : []);
-
-      let changed = false;
-
-      const day4 = list.find(d => Number(d.day) === 4);
-      if (day4 && day4.title !== TARGET_DAY4_TITLE) {
-        day4.title = TARGET_DAY4_TITLE;
-        changed = true;
-      }
-
-      return { list, changed };
-    }
-
     // 監聽雲端資料變更
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
-      let shouldSyncFirebase = false;
-
       if (data) {
-        const normalized = normalizeItineraryData(data.itinerary || defaultItinerary);
-
-        window.itineraryData = normalized.list;
+        window.itineraryData = data.itinerary || defaultItinerary;
         window.prepList = data.prep || defaultPrep;
         window.ticketList = data.ticket || defaultTicket;
         window.expenses = data.expenses || [];
-
-        shouldSyncFirebase = normalized.changed;
       } else if (!isCloudLoaded) {
         // 如果雲端真的完全沒有資料，才寫入預設值
         window.itineraryData = defaultItinerary;
         window.prepList = defaultPrep;
         window.ticketList = defaultTicket;
         window.expenses = [];
-        shouldSyncFirebase = true;
-      }
-
-      // 先標記已完成雲端讀取，再寫回修正後資料。
-      // 避免 saveToFirebase() 因 isCloudLoaded=false 而被擋掉。
-      isCloudLoaded = true;
-
-      if (shouldSyncFirebase) {
         saveToFirebase();
       }
+
+      isCloudLoaded = true;
 
       // 重新渲染畫面
       if (typeof renderTimeline === 'function') {
@@ -494,7 +460,7 @@
           <button onclick="selectFilter('area', 'ochanomizu', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ochanomizu">御茶之水</button>
           <button onclick="selectFilter('area', 'ikebukuro', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ikebukuro">池袋</button>
           <button onclick="selectFilter('area', 'fuji', this)" class="filter-btn-area px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="fuji">富士山區</button>
-          <button onclick="selectFilter('area', 'kamakura', this)" class="filter-btn-area px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="kamakura">鐮倉區</button>
+          <button onclick="selectFilter('area', 'kamakura', this)" class="filter-btn-area px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="kamakura">橫濱/鐮倉</button>
           <button onclick="selectFilter('area', 'other', this)" class="filter-btn-area px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="other">其他/住宿</button>
         </div>
       </div>
@@ -531,7 +497,7 @@
               <option value="ochanomizu">御茶之水</option>
               <option value="ikebukuro">池袋</option>
               <option value="fuji">富士山區</option>
-              <option value="kamakura">鐮倉區</option>
+              <option value="kamakura">橫濱/鐮倉</option>
               <option value="other">其他/住宿</option>
             </select>
           </div>
@@ -708,7 +674,7 @@
             const itemArea = item.getAttribute('data-area');
 
             const matchType = !hasTypeFilter || (itemType === currentFilter.type);
-            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area || itemArea === 'other');
+            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
 
             let showItem = false;
             if (!hasTypeFilter && !hasAreaFilter) {
@@ -977,25 +943,9 @@
 
     function scrollToDay(elementId) {
       const target = document.getElementById(elementId);
-
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-
-      // 更新 D1～D16 天數按鈕：目前選中的天數變成深藍色
-      const dayButtons = document.querySelectorAll('#timeline-days-bar button');
-
-      dayButtons.forEach((btn, index) => {
-        const dayNumber = index + 1;
-
-        if (elementId === `day-${dayNumber}`) {
-          btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
-          btn.classList.add('bg-[#2C4A5A]', 'text-white', 'shadow-sm');
-        } else {
-          btn.classList.remove('bg-[#2C4A5A]', 'text-white', 'shadow-sm');
-          btn.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
-        }
-      });
     }
 
     function toggleTransportDetails() {
