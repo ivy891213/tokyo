@@ -11,7 +11,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
@@ -186,7 +186,21 @@
         throw error;
       });
     };
+// ★ 新增：刪除單一地圖地點的 Firebase 邏輯
+window.deleteOneMapPlaceFromFirebase = async function(placeId) {
+  if (!db) throw new Error("Firebase Database 尚未初始化");
+  const placeRef = ref(db, 'tokyo_trip_data/mapPlaces/' + placeId);
 
+  try {
+    await remove(placeRef);
+    showCloudStatus("地點已從雲端刪除");
+    return true;
+  } catch (error) {
+    console.error("地圖地點刪除失敗:", error);
+    showCloudStatus("刪除失敗：" + (error?.message || "Firebase Rules"), false);
+    throw error;
+  }
+};
     // ★ 新增單一地圖地點：只寫入自己的 Firebase key，不會覆蓋其他地點
     window.saveOneMapPlaceToFirebase = async function(place) {
       if (!db) throw new Error("Firebase Database 尚未初始化");
@@ -894,7 +908,20 @@
         newItem.dataset.area = place.area || '';
         newItem.dataset.customPlace = 'true';
         newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
-
+// 在設定好 newItem 的 class 或 innerHTML 時，加入帶有刪除按鈕的結構
+newItem.innerHTML = `
+  <div class="flex items-center justify-between w-full">
+    <span>${place.name}</span>
+    <div class="flex items-center gap-1.5">
+      <span class="text-[10px] text-slate-400">${place.area || ''}</span>
+     <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.deleteOneMapPlaceFromFirebase('${place.id}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[10px] font-bold transition">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    </div>
+  </div>
+`;
+        
+        
         const title = document.createElement('span');
         title.className = 'font-bold text-slate-800';
         title.textContent = place.name;
