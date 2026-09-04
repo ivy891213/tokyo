@@ -718,7 +718,7 @@
         area: null
     };
 
-    function selectFilter(category, value, btnElement) {
+    window.selectFilter = function(category, value, btnElement) {
     // 如果再次點擊同一個按鈕，就取消該篩選
     if (currentFilter[category] === value) {
         currentFilter[category] = null;
