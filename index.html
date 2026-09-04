@@ -719,20 +719,20 @@
     };
 
     window.selectFilter = function(category, value, btnElement) {
-    // 如果再次點擊同一個按鈕，就取消該篩選
+
     if (currentFilter[category] === value) {
         currentFilter[category] = null;
 
         btnElement.classList.remove('opacity-100', 'shadow-sm');
         btnElement.classList.add('opacity-70');
+
     } else {
-        // 先取消同類型其他按鈕的選取狀態
+
         document.querySelectorAll(`.filter-btn-${category}`).forEach(btn => {
             btn.classList.remove('opacity-100', 'shadow-sm');
             btn.classList.add('opacity-70');
         });
 
-        // 設定目前篩選
         currentFilter[category] = value;
 
         btnElement.classList.remove('opacity-70');
@@ -741,7 +741,6 @@
 
     applyMapFilters();
 }
-
     function clearAllFilters() {
         currentFilter.type = null;
         currentFilter.area = null;
