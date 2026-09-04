@@ -732,7 +732,7 @@ window.deleteOneMapPlaceFromFirebase = async function(placeId) {
         area: null
     };
 
-    function selectFilter(category, value, btnElement) {
+    window.selectFilter = function(category, value, btnElement) {
         if (currentFilter[category] === value) {
             currentFilter[category] = null;
             btnElement.classList.remove('opacity-100', 'shadow-sm');
