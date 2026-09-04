@@ -27,6 +27,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    window.__firebaseMapDebug = {
+      initialized: true,
+      databaseURL: firebaseConfig.databaseURL
+    };
+
     // 預設資料
     const defaultItinerary = [
       { day: 1, date: '11.28 SAT', title: '抵達東京 ➔ 晴空塔 ➔ 澀谷 SKY', items: [
@@ -183,28 +188,26 @@
     };
 
     // ★ 新增單一地圖地點：只寫入自己的 Firebase key，不會覆蓋其他地點
-    window.saveOneMapPlaceToFirebase = function(place) {
-      if (!isMapCloudLoaded) {
-        showCloudStatus("地圖雲端尚未載入完成，請稍候再試", false);
-        return Promise.reject(new Error("Map cloud data not loaded"));
-      }
-
+    window.saveOneMapPlaceToFirebase = async function(place) {
+      if (!db) throw new Error("Firebase Database 尚未初始化");
       const placeRef = ref(db, 'tokyo_trip_data/mapPlaces/' + place.id);
 
-      return set(placeRef, {
-        id: place.id,
-        name: place.name,
-        link: place.link,
-        type: place.type,
-        area: place.area,
-        createdAt: place.createdAt
-      }).then(() => {
-        showCloudStatus("地點已同步到雲端");
-      }).catch((error) => {
+      try {
+        await set(placeRef, {
+          id: place.id,
+          name: place.name,
+          link: place.link,
+          type: place.type,
+          area: place.area,
+          createdAt: place.createdAt
+        });
+        showCloudStatus("地點已成功存到雲端");
+        return true;
+      } catch (error) {
         console.error("地圖地點寫入失敗:", error);
-        showCloudStatus("地點寫入失敗：請檢查 Firebase Rules", false);
+        showCloudStatus("儲存失敗：" + (error?.message || "Firebase Rules"), false);
         throw error;
-      });
+      }
     };
   </script>
 
@@ -214,7 +217,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body data-build="firebase-map-sync-v3" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
+<body data-build="firebase-map-sync-v4" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
@@ -583,7 +586,7 @@
         </div>
         <div class="flex gap-2 pt-1">
           <button onclick="toggleAddBox()" class="flex-1 py-1.5 bg-slate-100 text-slate-600 rounded-lg font-bold text-xs">取消</button>
-          <button onclick="saveNewItem()" class="flex-1 py-1.5 bg-[#008BB0] text-white rounded-lg font-bold text-xs shadow-sm">完成</button>
+          <button id="map-save-btn" type="button" class="flex-1 py-1.5 bg-[#008BB0] text-white rounded-lg font-bold text-xs shadow-sm">完成</button>
         </div>
       </div>
 
@@ -787,6 +790,7 @@
       const linkInput = document.getElementById('input-link');
       const typeInput = document.getElementById('input-type');
       const areaInput = document.getElementById('input-area');
+      const saveBtn = document.getElementById('map-save-btn');
 
       const name = nameInput.value.trim();
       const link = linkInput.value.trim();
@@ -801,45 +805,76 @@
       let safeLink;
       try {
         safeLink = new URL(link);
-        if (!['http:', 'https:'].includes(safeLink.protocol)) throw new Error('invalid protocol');
+        if (!['http:', 'https:'].includes(safeLink.protocol)) {
+          throw new Error('invalid protocol');
+        }
       } catch (e) {
         alert('請貼上有效的 Google Maps 網址！');
         return;
       }
 
-      if (!isMapCloudLoaded) {
-        alert('地圖雲端尚未準備完成，請等一下再按一次「完成」。');
-        return;
-      }
+      if (saveBtn?.disabled) return;
 
       const newPlace = {
         id: 'place_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10),
-        name: name,
+        name,
         link: safeLink.href,
-        type: type,
-        area: area,
+        type,
+        area,
         createdAt: Date.now()
       };
 
-      // 先顯示，讓使用者立即看到；Firebase 成功後才視為真正儲存
-      window.mapPlaces.push(newPlace);
-      renderCustomMapPlaces();
+      const oldText = saveBtn ? saveBtn.textContent : '';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '儲存中…';
+        saveBtn.classList.add('opacity-60', 'cursor-wait');
+      }
 
       try {
         await window.saveOneMapPlaceToFirebase(newPlace);
 
-        toggleAddBox();
+        // Firebase 寫入成功後才加入本機清單
+        if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
+        window.mapPlaces.push(newPlace);
+        renderCustomMapPlaces();
+
         nameInput.value = '';
         linkInput.value = '';
+        document.getElementById('inline-add-box')?.classList.add('hidden');
+
+        showCloudStatus('✓ 已新增並同步到所有裝置');
       } catch (error) {
-        // Firebase 寫入失敗時移除本次本地暫存，避免看起來已成功
-        window.mapPlaces = window.mapPlaces.filter(item => item.id !== newPlace.id);
-        renderCustomMapPlaces();
-        alert('新增地點失敗：Firebase 沒有接受這筆資料。請檢查 Realtime Database Rules。');
+        console.error('saveNewItem error:', error);
+        alert(
+          '新增失敗，資料沒有存進雲端。
+
+' +
+          '錯誤：' + (error?.message || error) +
+          '
+
+請確認 Firebase Realtime Database Rules 允許寫入。'
+        );
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = oldText || '完成';
+          saveBtn.classList.remove('opacity-60', 'cursor-wait');
+        }
       }
     }
 
-    // 確保 HTML 的 onclick 可以呼叫 module script 裡的函式
+    // 不再依賴 inline onclick：直接綁定「完成」按鈕，避免 module / inline scope 問題
+    document.addEventListener('DOMContentLoaded', () => {
+      const saveBtn = document.getElementById('map-save-btn');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          saveNewItem();
+        });
+      }
+    });
+
     window.saveNewItem = saveNewItem;
     window.toggleAddBox = toggleAddBox;
 
