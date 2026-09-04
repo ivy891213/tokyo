@@ -893,7 +893,7 @@ window.renderCustomMapPlaces = function() {
 
       if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
 
-   window.mapPlaces.forEach(place => {
+  window.mapPlaces.forEach(place => {
     if (!place || !place.name || !place.link) return;
 
     const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
