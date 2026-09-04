@@ -11,7 +11,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
@@ -157,9 +157,9 @@
 
       isMapCloudLoaded = true;
 
-      if (typeof window.renderCustomMapPlaces === 'function') {
-    window.renderCustomMapPlaces();
-}
+      if (typeof renderCustomMapPlaces === 'function') {
+        renderCustomMapPlaces();
+      }
     }, (error) => {
       console.error("地圖地點讀取失敗:", error);
       isMapCloudLoaded = false;
@@ -186,21 +186,7 @@
         throw error;
       });
     };
-// ★ 新增：刪除單一地圖地點的 Firebase 邏輯
-window.deleteOneMapPlaceFromFirebase = async function(placeId) {
-  if (!db) throw new Error("Firebase Database 尚未初始化");
-  const placeRef = ref(db, 'tokyo_trip_data/mapPlaces/' + placeId);
 
-  try {
-    await remove(placeRef);
-    showCloudStatus("地點已從雲端刪除");
-    return true;
-  } catch (error) {
-    console.error("地圖地點刪除失敗:", error);
-    showCloudStatus("刪除失敗：" + (error?.message || "Firebase Rules"), false);
-    throw error;
-  }
-};
     // ★ 新增單一地圖地點：只寫入自己的 Firebase key，不會覆蓋其他地點
     window.saveOneMapPlaceToFirebase = async function(place) {
       if (!db) throw new Error("Firebase Database 尚未初始化");
@@ -732,7 +718,7 @@ window.deleteOneMapPlaceFromFirebase = async function(placeId) {
         area: null
     };
 
-    window.selectFilter = function(category, value, btnElement) {
+    function selectFilter(category, value, btnElement) {
         if (currentFilter[category] === value) {
             currentFilter[category] = null;
             btnElement.classList.remove('opacity-100', 'shadow-sm');
@@ -851,7 +837,8 @@ window.deleteOneMapPlaceFromFirebase = async function(placeId) {
         // Firebase 寫入成功後才加入本機清單
         if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
         window.mapPlaces.push(newPlace);
-window.renderCustomMapPlaces();
+        renderCustomMapPlaces();
+
         nameInput.value = '';
         linkInput.value = '';
         document.getElementById('inline-add-box')?.classList.add('hidden');
@@ -888,55 +875,26 @@ window.renderCustomMapPlaces();
     window.toggleAddBox = toggleAddBox;
 
     // 從 Firebase 重新建立所有「使用者新增」地點的 DOM
-window.renderCustomMapPlaces = function() {
-  document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
+    function renderCustomMapPlaces() {
+      document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
 
       if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
 
- window.mapPlaces.forEach(place => {
-    if (!place || !place.name || !place.link) return;
+      window.mapPlaces.forEach(place => {
+        if (!place || !place.name || !place.link) return;
 
-    const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
-    if (!targetSectionList) return;
+        const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
+        if (!targetSectionList) return;
 
-    const newItem = document.createElement('div');
-    newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between text-xs transition mb-2 group cursor-pointer';
-    newItem.dataset.type = place.type || '';
-    newItem.dataset.area = place.area || '';
-    newItem.dataset.customPlace = 'true';
+        const newItem = document.createElement('a');
+        newItem.href = place.link;
+        newItem.target = '_blank';
+        newItem.rel = 'noopener noreferrer';
+        newItem.dataset.type = place.type || '';
+        newItem.dataset.area = place.area || '';
+        newItem.dataset.customPlace = 'true';
+        newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
 
-    newItem.innerHTML = `
-      <div class="flex items-center gap-2 overflow-hidden pr-2 grow">
-        <span class="font-bold text-slate-800 truncate">${place.name}</span>
-        <span class="text-[10px] text-slate-400 shrink-0">${place.area || ''}</span>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button type="button" class="delete-btn p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs transition" title="刪除地點">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
-        <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
-      </div>
-    `;
-
-    // 點擊卡片本身（除了垃圾桶外）開啟地圖連結
-    newItem.addEventListener('click', (e) => {
-      if (e.target.closest('.delete-btn')) return;
-      window.open(place.link, '_blank', 'noopener,noreferrer');
-    });
-
-    // 點擊垃圾桶按鈕觸發刪除
-    const deleteBtn = newItem.querySelector('.delete-btn');
-    deleteBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof window.deleteOneMapPlaceFromFirebase === 'function') {
-        window.deleteOneMapPlaceFromFirebase(place.id);
-      }
-    });
-
-    targetSectionList.appendChild(newItem);
-});
-            
         const title = document.createElement('span');
         title.className = 'font-bold text-slate-800';
         title.textContent = place.name;
