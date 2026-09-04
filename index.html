@@ -82,69 +82,119 @@
     window.prepList = [];
     window.ticketList = [];
     window.expenses = [];
-    // 使用獨立的 mapPlaces 儲存「前端新增的地點」。
-    // 原本寫入 DOM 的做法只存在目前瀏覽器畫面，重新整理/換裝置後就會消失。
     window.mapPlaces = [];
 
     let isCloudLoaded = false;
-    const tripRef = ref(db, 'tokyo_trip_data');
+    let isMapCloudLoaded = false;
 
-    // 監聽雲端資料變更
+    const tripRef = ref(db, 'tokyo_trip_data');
+    // 地圖自訂地點獨立存放，避免被其他資料寫入時覆蓋
+    const mapPlacesRef = ref(db, 'tokyo_trip_data/mapPlaces');
+
+    function showCloudStatus(message, ok = true) {
+      let el = document.getElementById('cloud-sync-status');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'cloud-sync-status';
+        el.style.cssText = 'position:fixed;left:50%;bottom:82px;transform:translateX(-50%);z-index:9999;padding:7px 12px;border-radius:999px;font-size:11px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.12);pointer-events:none;background:' + (ok ? '#ECFDF5' : '#FEF2F2') + ';color:' + (ok ? '#047857' : '#B91C1C') + ';';
+        document.body.appendChild(el);
+      }
+      el.textContent = message;
+      el.style.background = ok ? '#ECFDF5' : '#FEF2F2';
+      el.style.color = ok ? '#047857' : '#B91C1C';
+      clearTimeout(window.__cloudStatusTimer);
+      window.__cloudStatusTimer = setTimeout(() => el.remove(), 2200);
+    }
+
+    // 監聽主要行程/清單資料
     onValue(tripRef, (snapshot) => {
       const data = snapshot.val();
-
       if (data) {
-        window.itineraryData = Array.isArray(data.itinerary) ? data.itinerary : defaultItinerary;
-        window.prepList = Array.isArray(data.prep) ? data.prep : defaultPrep;
-        window.ticketList = Array.isArray(data.ticket) ? data.ticket : defaultTicket;
-        window.expenses = Array.isArray(data.expenses) ? data.expenses : [];
-        window.mapPlaces = Array.isArray(data.mapPlaces) ? data.mapPlaces : [];
+        window.itineraryData = data.itinerary || defaultItinerary;
+        window.prepList = data.prep || defaultPrep;
+        window.ticketList = data.ticket || defaultTicket;
+        window.expenses = data.expenses || [];
       } else if (!isCloudLoaded) {
-        // Firebase 第一次沒有資料時，才建立完整初始資料。
         window.itineraryData = defaultItinerary;
         window.prepList = defaultPrep;
         window.ticketList = defaultTicket;
         window.expenses = [];
-        window.mapPlaces = [];
-        // 此時 isCloudLoaded 還是 false，所以先直接寫入初始資料。
-        saveToFirebase(true);
       }
 
       isCloudLoaded = true;
 
-      // 重新渲染畫面
       if (typeof renderTimeline === 'function') {
         renderTimeline();
         renderPrepList();
         renderTicketList();
-        renderCustomMapPlaces();
         updateAllProgressUI();
         calculateTransportExpenses();
         updateBudgetUI();
       }
+    }, (error) => {
+      console.error("主要資料讀取失敗:", error);
+      showCloudStatus("雲端讀取失敗，請檢查 Firebase Rules", false);
     });
 
-    // 儲存至 Firebase。
-    // force=true 只用於第一次建立 Firebase 資料。
-    window.saveToFirebase = function(force = false) {
-      if (!isCloudLoaded && !force) return; // 尚未從雲端讀取完成前禁止寫入，避免覆蓋
+    // ★ 專門監聽「使用者新增的地圖地點」
+    onValue(mapPlacesRef, (snapshot) => {
+      const data = snapshot.val();
 
-      const payload = {
+      if (!data) {
+        window.mapPlaces = [];
+      } else if (Array.isArray(data)) {
+        window.mapPlaces = data.filter(Boolean);
+      } else if (typeof data === 'object') {
+        window.mapPlaces = Object.values(data).filter(Boolean);
+      } else {
+        window.mapPlaces = [];
+      }
+
+      isMapCloudLoaded = true;
+      if (typeof renderCustomMapPlaces === 'function') {
+        renderCustomMapPlaces();
+      }
+    }, (error) => {
+      console.error("地圖地點讀取失敗:", error);
+      isMapCloudLoaded = false;
+      showCloudStatus("地圖同步失敗：Firebase Rules 不允許讀取", false);
+    });
+
+    // 儲存主要資料
+    window.saveToFirebase = function() {
+      if (!isCloudLoaded) {
+        showCloudStatus("雲端尚未載入完成", false);
+        return Promise.reject(new Error("Cloud data not loaded"));
+      }
+
+      return set(tripRef, {
         itinerary: window.itineraryData,
         prep: window.prepList,
         ticket: window.ticketList,
-        expenses: window.expenses,
-        mapPlaces: window.mapPlaces
-      };
+        expenses: window.expenses
+      }).then(() => {
+        showCloudStatus("已同步到雲端");
+      }).catch((error) => {
+        console.error("寫入雲端失敗:", error);
+        showCloudStatus("寫入失敗：請檢查 Firebase Rules", false);
+        throw error;
+      });
+    };
 
-      set(tripRef, payload)
-        .then(() => {
-          console.log("Firebase 同步成功");
-        })
-        .catch((error) => {
-          console.error("寫入雲端失敗: ", error);
-          alert("網路連線異常，資料同步可能失敗，請稍後再試！");
-        });
+    // ★ 儲存地圖自訂地點
+    window.saveMapPlacesToFirebase = function() {
+      if (!isMapCloudLoaded) {
+        showCloudStatus("地圖雲端尚未載入完成，請稍候再試", false);
+        return Promise.reject(new Error("Map cloud data not loaded"));
+      }
+
+      return set(mapPlacesRef, window.mapPlaces).then(() => {
+        showCloudStatus("地點已同步到雲端");
+      }).catch((error) => {
+        console.error("地圖地點寫入失敗:", error);
+        showCloudStatus("地點寫入失敗：請檢查 Firebase Rules", false);
+        throw error;
+      });
     };
   </script>
 
@@ -154,7 +204,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
+<body data-build="firebase-map-sync-v2" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
@@ -721,33 +771,95 @@
       box.classList.toggle('hidden');
     }
 
-    // 把 Firebase 裡的自訂地點重新畫到地圖清單。
-    // 注意：HTML 內原本的固定景點仍保留；這裡只管理「使用者新增」的地點。
-    function renderCustomMapPlaces() {
-      // 先移除上一輪由 Firebase 畫出的自訂地點，避免 onValue 觸發時重複。
-      document.querySelectorAll('.map-item[data-custom-place="true"]').forEach(el => el.remove());
+    // 儲存新地點：先寫入 window.mapPlaces，再寫入 Firebase
+    async function saveNewItem() {
+      const nameInput = document.getElementById('input-name');
+      const linkInput = document.getElementById('input-link');
+      const typeInput = document.getElementById('input-type');
+      const areaInput = document.getElementById('input-area');
 
-      (window.mapPlaces || []).forEach(place => {
+      const name = nameInput.value.trim();
+      const link = linkInput.value.trim();
+      const type = typeInput.value;
+      const area = areaInput.value;
+
+      if (!name || !link) {
+        alert('請填寫地點名稱與 Google Maps 連結！');
+        return;
+      }
+
+      let safeLink;
+      try {
+        safeLink = new URL(link);
+        if (!['http:', 'https:'].includes(safeLink.protocol)) throw new Error('invalid protocol');
+      } catch (e) {
+        alert('請貼上有效的 Google Maps 網址！');
+        return;
+      }
+
+      if (!window.isMapCloudReadyForWrite || !isMapCloudLoaded) {
+        // isMapCloudLoaded 在 Firebase onValue 成功後才會變成 true
+        alert('地圖雲端尚未準備完成，請等一下再按一次「完成」。');
+        return;
+      }
+
+      const newPlace = {
+        id: 'place_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        name: name,
+        link: safeLink.href,
+        type: type,
+        area: area,
+        createdAt: Date.now()
+      };
+
+      window.mapPlaces.push(newPlace);
+
+      // 先在畫面顯示，接著真正寫入 Firebase
+      renderCustomMapPlaces();
+
+      try {
+        await window.saveMapPlacesToFirebase();
+
+        toggleAddBox();
+        nameInput.value = '';
+        linkInput.value = '';
+      } catch (error) {
+        // 寫入失敗時回復本次新增，避免畫面看起來成功但其實沒存
+        window.mapPlaces = window.mapPlaces.filter(item => item.id !== newPlace.id);
+        renderCustomMapPlaces();
+        alert('新增地點失敗，資料沒有寫進雲端。請檢查 Firebase Realtime Database Rules。');
+      }
+    }
+
+    // 從 Firebase 重新建立所有「使用者新增」地點的 DOM
+    function renderCustomMapPlaces() {
+      document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
+
+      if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
+
+      window.mapPlaces.forEach(place => {
+        if (!place || !place.name || !place.link) return;
+
         const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
         if (!targetSectionList) return;
 
         const newItem = document.createElement('a');
         newItem.href = place.link;
-        newItem.target = "_blank";
-        newItem.rel = "noopener noreferrer";
-        newItem.dataset.type = place.type;
-        newItem.dataset.area = place.area;
-        newItem.dataset.customPlace = "true";
-        newItem.className = "map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition";
+        newItem.target = '_blank';
+        newItem.rel = 'noopener noreferrer';
+        newItem.dataset.type = place.type || '';
+        newItem.dataset.area = place.area || '';
+        newItem.dataset.customPlace = 'true';
+        newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
 
-        const nameSpan = document.createElement('span');
-        nameSpan.className = "font-bold text-slate-800";
-        nameSpan.textContent = place.name;
+        const title = document.createElement('span');
+        title.className = 'font-bold text-slate-800';
+        title.textContent = place.name;
 
         const icon = document.createElement('i');
-        icon.className = "fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]";
+        icon.className = 'fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]';
 
-        newItem.appendChild(nameSpan);
+        newItem.appendChild(title);
         newItem.appendChild(icon);
         targetSectionList.appendChild(newItem);
       });
@@ -755,52 +867,11 @@
       applyMapFilters();
     }
 
-    // 儲存新地點：
-    // 1. 先寫入 window.mapPlaces
-    // 2. 再寫入 Firebase
-    // 3. Firebase onValue 收到資料後，所有裝置都會重新渲染
-    function saveNewItem() {
-      const name = document.getElementById('input-name').value.trim();
-      const link = document.getElementById('input-link').value.trim();
-      const type = document.getElementById('input-type').value;
-      const area = document.getElementById('input-area').value;
-
-      if (!name || !link) {
-        alert('請填寫地點名稱與 Google Maps 連結！');
-        return;
-      }
-
-      // 基本網址檢查，避免把錯誤字串存進雲端。
-      try {
-        const url = new URL(link);
-        if (!['http:', 'https:'].includes(url.protocol)) {
-          throw new Error('invalid protocol');
-        }
-      } catch (e) {
-        alert('請輸入有效的 Google Maps 網址！');
-        return;
-      }
-
-      const newPlace = {
-        id: `place_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        name,
-        link,
-        type,
-        area,
-        createdAt: Date.now()
-      };
-
-      window.mapPlaces.push(newPlace);
-
-      // 先立即畫面更新，再寫雲端。
-      renderCustomMapPlaces();
-      toggleAddBox();
-      document.getElementById('input-name').value = '';
-      document.getElementById('input-link').value = '';
-
-      // 這次會真正把 mapPlaces 寫進 Firebase。
-      window.saveToFirebase();
-    }
+    // 提供給 saveNewItem 使用，避免 Firebase listener 尚未完成時誤寫
+    Object.defineProperty(window, 'isMapCloudReadyForWrite', {
+      configurable: true,
+      get: () => isMapCloudLoaded
+    });
   </script>
 
 
