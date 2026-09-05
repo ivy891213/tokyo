@@ -110,6 +110,7 @@
       clearTimeout(window.__cloudStatusTimer);
       window.__cloudStatusTimer = setTimeout(() => el.remove(), 2200);
     }
+    window.showCloudStatus = showCloudStatus;
 
     // 監聽主要行程/清單資料
     onValue(tripRef, (snapshot) => {
