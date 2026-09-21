@@ -11,7 +11,13 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import {
+    getDatabase,
+    ref,
+    set,
+    update,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7kLqmUa2p_NavczyZernkGibbh6cDUk4",
@@ -168,25 +174,25 @@
     });
 
     // 儲存主要資料
-    window.saveToFirebase = function() {
-      if (!isCloudLoaded) {
+   window.saveToFirebase = function() {
+    if (!isCloudLoaded) {
         showCloudStatus("雲端尚未載入完成", false);
         return Promise.reject(new Error("Cloud data not loaded"));
-      }
+    }
 
-      return set(tripRef, {
+    return update(tripRef, {
         itinerary: window.itineraryData,
         prep: window.prepList,
         ticket: window.ticketList,
         expenses: window.expenses
-      }).then(() => {
+    }).then(() => {
         showCloudStatus("已同步到雲端");
-      }).catch((error) => {
+    }).catch((error) => {
         console.error("寫入雲端失敗:", error);
         showCloudStatus("寫入失敗：請檢查 Firebase Rules", false);
         throw error;
-      });
-    };
+    });
+};
 
     // ★ 新增單一地圖地點：只寫入自己的 Firebase key，不會覆蓋其他地點
     window.saveOneMapPlaceToFirebase = async function(place) {
@@ -526,7 +532,8 @@
         <div id="filter-types" class="flex items-center gap-1 overflow-x-auto text-[11px] font-bold pb-0.5 scrollbar-none">
           <button onclick="selectFilter('type', 'sightseeing', this)" class="filter-btn-type px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="sightseeing">景點/拍照</button>
           <button onclick="selectFilter('type', 'food', this)" class="filter-btn-type px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="food">美食/咖啡</button>
-          <button onclick="selectFilter('type', 'shopping', this)" class="filter-btn-type px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shopping">購物/樂器</button>
+          <button onclick="selectFilter('type', 'shopping', this)"class="filter-btn-type px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg shrink-0 border border-transparent opacity-70 transition"data-val="shopping">購物</button>
+          <button onclick="selectFilter('type', 'music', this)"class="filter-btn-type px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg shrink-0 border border-transparent opacity-70 transition"data-val="music">樂器</button>
         </div>
       </div>
 
@@ -567,7 +574,8 @@
             <select id="input-type" class="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
               <option value="sightseeing">景點/拍照</option>
               <option value="food">美食/咖啡</option>
-              <option value="shopping">購物/樂器</option>
+              <option value="shopping">購物</option>
+              <option value="music">樂器</option>
             </select>
           </div>
           <div>
@@ -697,7 +705,7 @@
       </div>
       <div class="grid grid-cols-1 gap-2 text-xs map-item-list">
         <a href="https://maps.google.com/?q=Mandarake Nayuta" target="_blank" data-type="shopping" data-area="ikebukuro" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Mandarake Nayuta</span><p class="text-[10px] text-purple-600 font-medium">二手公仔店 (池袋P'PARCO B2F)</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
-        <a href="https://maps.google.com/?q=BIGBOSS Ochanomizu" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">BIGBOSS Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=BIGBOSS Ochanomizu" target="_blank" data-type="music" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">BIGBOSS Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=墨田區本所" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">住宿地點</span><p class="text-[10px] text-slate-400">墨田區本所</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=Ishibashi Music - Shibuya" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Ishibashi Music - Shibuya</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=G-CLUB Shibuya" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">G-CLUB Shibuya</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
@@ -705,11 +713,11 @@
         <a href="https://maps.google.com/?q=池部樂器店 哈特曼吉他" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">池部樂器店 哈特曼吉他</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=池部樂器店 哈特曼復古吉他" target="_blank" data-type="shopping" data-area="shibuya" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">池部樂器店 哈特曼復古吉他</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=Nico-Nico Guitars" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Nico-Nico Guitars</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
-        <a href="https://maps.google.com/?q=Guitar Planet" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Guitar Planet</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
-        <a href="https://maps.google.com/?q=Shimokura Second Hands PART1" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Shimokura Second Hands PART1</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Guitar Planet" target="_blank" data-type="music" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Guitar Planet</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Shimokura Second Hands PART1" target="_blank" data-type="music" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Shimokura Second Hands PART1</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
         <a href="https://maps.google.com/?q=ESP guitar workshop" target="_blank" data-type="shopping" data-area="other" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">ESP guitar workshop</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
-        <a href="https://maps.google.com/?q=Ishibashi Music - Ochanomizu Main Shop" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Ishibashi Music - Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
-        <a href="https://maps.google.com/?q=下倉楽器 御茶之水本店" target="_blank" data-type="shopping" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">下倉楽器 御茶之水本店</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=Ishibashi Music - Ochanomizu Main Shop" target="_blank" data-type="music" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">Ishibashi Music - Ochanomizu</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
+        <a href="https://maps.google.com/?q=下倉楽器 御茶之水本店" target="_blank" data-type="music" data-area="ochanomizu" class="map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition"><div><span class="font-bold text-slate-800">下倉楽器 御茶之水本店</span><p class="text-[10px] text-slate-400">樂器行</p></div><i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]"></i></a>
       </div>
     </section>
 
