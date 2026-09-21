@@ -204,6 +204,7 @@
           id: place.id,
           name: place.name,
           link: place.link,
+          note: place.note || '',
           type: place.type,
           area: place.area,
           createdAt: place.createdAt
@@ -224,7 +225,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body data-build="firebase-map-sync-v4" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
+<body data-build="firebase-map-sync-v5-notes" class="bg-[#EEF2F5] text-[#2C3E50] pb-28 max-w-md mx-auto min-h-screen relative font-sans select-none">
 
   <header class="bg-white/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-100 sticky top-0 z-50 shadow-sm">
     <div class="flex items-center gap-2">
@@ -544,7 +545,7 @@
           <button onclick="selectFilter('area', 'shibuya', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shibuya">澀谷</button>
           <button onclick="selectFilter('area', 'asakusa', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="asakusa">淺草</button>
           <button onclick="selectFilter('area', 'shinjuku', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="shinjuku">新宿</button>
-          <button onclick="selectFilter('area', 'akihabara', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="akihabara">秋葉原</button>
+          <button onclick="selectFilter('area', 'akihabara', this)" class="filter-btn-area px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="akihabara">秋葉原</button>
           <button onclick="selectFilter('area', 'ginza', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ginza">銀座</button>
           <button onclick="selectFilter('area', 'ochanomizu', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ochanomizu">御茶之水</button>
           <button onclick="selectFilter('area', 'ikebukuro', this)" class="filter-btn-area px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg shrink-0 border border-transparent opacity-70 transition" data-val="ikebukuro">池袋</button>
@@ -567,6 +568,10 @@
         <div>
           <label class="block font-bold text-slate-400 mb-0.5">輸入 Google Map 連結</label>
           <input type="text" id="input-link" placeholder="請貼上網址..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-400 mb-0.5">備註 / 說明（選填）</label>
+          <input type="text" id="input-note" placeholder="例如：二手吉他、推薦必逛" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#008BB0]">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -815,12 +820,14 @@
     async function saveNewItem() {
       const nameInput = document.getElementById('input-name');
       const linkInput = document.getElementById('input-link');
+      const noteInput = document.getElementById('input-note');
       const typeInput = document.getElementById('input-type');
       const areaInput = document.getElementById('input-area');
       const saveBtn = document.getElementById('map-save-btn');
 
       const name = nameInput.value.trim();
       const link = linkInput.value.trim();
+      const note = noteInput ? noteInput.value.trim() : '';
       const type = typeInput.value;
       const area = areaInput.value;
 
@@ -846,6 +853,7 @@
         id: 'place_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10),
         name,
         link: safeLink.href,
+        note,
         type,
         area,
         createdAt: Date.now()
@@ -868,6 +876,7 @@
 
         nameInput.value = '';
         linkInput.value = '';
+        if (noteInput) noteInput.value = '';
         document.getElementById('inline-add-box')?.classList.add('hidden');
 
         showCloudStatus('✓ 已新增並同步到所有裝置');
@@ -922,14 +931,26 @@
         newItem.dataset.customPlace = 'true';
         newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
 
+        const textWrap = document.createElement('div');
+        textWrap.className = 'min-w-0 pr-2';
+
         const title = document.createElement('span');
         title.className = 'font-bold text-slate-800';
         title.textContent = place.name;
+        textWrap.appendChild(title);
+
+        const noteText = (place.note || place.description || '').trim();
+        if (noteText) {
+          const note = document.createElement('p');
+          note.className = 'text-[10px] text-slate-400 font-medium mt-0.5';
+          note.textContent = noteText;
+          textWrap.appendChild(note);
+        }
 
         const icon = document.createElement('i');
         icon.className = 'fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]';
 
-        newItem.appendChild(title);
+        newItem.appendChild(textWrap);
         newItem.appendChild(icon);
         targetSectionList.appendChild(newItem);
       });
