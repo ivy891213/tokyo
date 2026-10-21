@@ -1244,18 +1244,34 @@
       if (totalElem) totalElem.innerText = totalCost.toLocaleString();
     }
 
-    // 僅讀取地圖連結；移除行程描述後保守比對，分店不明確時不連結。
-    function findTimelineMapLink(title) {
-      const normalize = value => String(value || '').toLowerCase()
+    // 每日行程與地圖保守智慧比對：只連結能明確識別的單一地點。
+    function findTimelineMapLink(title, dayItems = []) {
+      const compact = value => String(value || '').toLowerCase()
         .replace(/[樂楽]/g, '楽').replace(/臺/g, '台')
-        .replace(/^(?:(?:早餐|午餐|晚餐|宵夜|早午餐|下午茶|前往|參觀|逛逛|抵達|去|到)\s*)+/g, '')
-        .replace(/(?:(?:逛逛|參觀|散步|拍照|吃飯|用餐)\s*)+$/g, '')
+        .replace(/[ヶケ]/g, 'ケ')
         .replace(/[^\p{L}\p{N}]/gu, '');
-      const cleanTitle = normalize(title);
+      const stripActions = value => String(value || '')
+        .replace(/^(?:(?:早餐|午餐|晚餐|宵夜|早午餐|下午茶|前往|參觀|抵達|搭車前往|去排隊|排隊|搭車|散步|逛逛|去|到|往|至)\s*[:：、，,]?\s*)+/g, '')
+        .replace(/(?:(?:逛逛|參觀|散步|拍照|吃飯|用餐|打卡|走走)\s*)+$/g, '');
+      const cleanTitle = compact(stripActions(title));
       if (cleanTitle.length < 3) return null;
+      const aliases = [
+        ['白鳥濱', 'Shiratori Beach'],
+        ['白鳥之濱', 'Shiratori Beach'],
+        ['山中湖平野', 'Yamanakakohirano'],
+        ['平野', 'Yamanakakohirano'],
+        ['白鳥浜', 'Shiratori Beach']
+      ];
       const places = [...document.querySelectorAll('#container-view-type a.map-item[href]')]
-        .map(el => ({ name: normalize(el.querySelector('span')?.textContent || el.textContent), url: el.href }))
+        .map(el => ({
+          name: compact(el.querySelector('span')?.textContent || el.textContent),
+          area: el.dataset.area || '',
+          url: el.href
+        }))
         .filter(p => p.name.length >= 3 && /^https?:/.test(p.url));
+      // 同一天有多個富士山／山中湖特徵地點，才以富士山區作為同名候選的輔助依據。
+      const fujiClues = /山中湖|富士山|平野之濱|長池親水公園|白鳥濱|白鳥浜|忍野八海|河口湖|山中湖平野/i;
+      const isFujiDay = dayItems.filter(i => fujiClues.test(String(i.title || ''))).length >= 2;
       const scored = places.map(p => {
         let score = 0;
         if (cleanTitle === p.name) score = 100;
@@ -1263,12 +1279,18 @@
           const shorter = Math.min(cleanTitle.length, p.name.length);
           if (shorter >= 3) score = 80 + 15 * shorter / Math.max(cleanTitle.length, p.name.length);
         }
-        return { ...p, score };
-      }).filter(p => p.score >= 80).sort((a,b) => b.score-a.score);
+        // 僅對已確認的中日英文別名做對應，不使用容易連錯店的通用猜測。
+        if (aliases.some(([a, b]) =>
+          (cleanTitle === compact(a) && p.name === compact(b)) ||
+          (cleanTitle === compact(b) && p.name === compact(a))
+        )) score = 100;
+        return { ...p, score, rank: score + (isFujiDay && p.area === 'fuji' && score > 0 ? 5 : 0) };
+      }).filter(p => p.score >= 80).sort((a, b) => b.rank - a.rank);
       if (!scored.length) return null;
       const best = scored[0];
-      // 任何其他不同網址的候選地點均視為可能有分店或歧義。
-      if (scored.some(p => p !== best && p.url !== best.url && p.score >= best.score - 15)) return null;
+      // 有不同網址且同樣可能的地點（例如連鎖店不同分店），不自動連結。
+      if (scored.some(p => p !== best && p.url !== best.url && p.rank >= best.rank - 15 &&
+          !(isFujiDay && best.area === 'fuji' && p.area !== 'fuji' && best.score >= p.score))) return null;
       return best.url;
     }
 
@@ -1292,7 +1314,7 @@
           itemsHTML = `<p class="text-xs text-slate-400 italic py-1"><i class="fa-solid fa-pen-to-square mr-1"></i> 尚未安排行程...</p>`;
         } else {
           d.items.forEach((item, itemIndex) => {
-            const matchedMapLink = findTimelineMapLink(item.title);
+            const matchedMapLink = findTimelineMapLink(item.title, d.items);
             const displayedTitle = escapeTimelineText(item.title);
             const titleHTML = matchedMapLink
               ? `<a href="${escapeTimelineText(matchedMapLink)}" target="_blank" rel="noopener noreferrer" class="font-bold text-slate-800 text-xs flex-1 min-w-0">${displayedTitle}</a>`
