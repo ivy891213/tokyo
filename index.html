@@ -966,6 +966,7 @@
       });
 
       applyMapFilters();
+      if (typeof renderTimeline === 'function' && Array.isArray(window.itineraryData)) renderTimeline();
     }
 
     // 提供給 saveNewItem 使用，避免 Firebase listener 尚未完成時誤寫
@@ -1243,6 +1244,38 @@
       if (totalElem) totalElem.innerText = totalCost.toLocaleString();
     }
 
+    // 僅讀取既有地圖連結，不更動 Firebase 資料；名稱不明確時不建立連結。
+    function findTimelineMapLink(title) {
+      const normalize = value => String(value || '').toLowerCase()
+        .replace(/[樂楽]/g, '楽').replace(/[臺]/g, '台')
+        .replace(/^(?:(?:早餐|午餐|晚餐|宵夜|早午餐|下午茶|前往|參觀|逛逛|抵達|去|到)\s*)+/g, '')
+        .replace(/[^\p{L}\p{N}]/gu, '');
+      const cleanTitle = normalize(title);
+      if (cleanTitle.length < 3) return null;
+      const places = [...document.querySelectorAll('#container-view-type a.map-item[href]')]
+        .map(el => ({ name: normalize(el.querySelector('span')?.textContent || el.textContent), url: el.href }))
+        .filter(p => p.name.length >= 3 && /^https?:/.test(p.url));
+      const scored = places.map(p => {
+        let score = 0;
+        if (cleanTitle === p.name) score = 100;
+        else if (cleanTitle.includes(p.name) || p.name.includes(cleanTitle)) {
+          const shorter = Math.min(cleanTitle.length, p.name.length);
+          if (shorter >= 4) score = 80 + 15 * shorter / Math.max(cleanTitle.length, p.name.length);
+        }
+        return { ...p, score };
+      }).filter(p => p.score >= 80).sort((a,b) => b.score-a.score);
+      if (!scored.length) return null;
+      // 同名不同分店或多個候選地點時一律不連結。
+      const best = scored[0];
+      if (scored.some(p => p !== best && p.url !== best.url && p.score >= best.score - 15)) return null;
+      return best.url;
+    }
+
+    function escapeTimelineText(value) {
+      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     function renderTimeline() {
       const container = document.getElementById('timeline-container');
       if (!container) return;
@@ -1258,12 +1291,17 @@
           itemsHTML = `<p class="text-xs text-slate-400 italic py-1"><i class="fa-solid fa-pen-to-square mr-1"></i> 尚未安排行程...</p>`;
         } else {
           d.items.forEach((item, itemIndex) => {
+            const matchedMapLink = findTimelineMapLink(item.title);
+            const displayedTitle = escapeTimelineText(item.title);
+            const titleHTML = matchedMapLink
+              ? `<a href="${escapeTimelineText(matchedMapLink)}" target="_blank" rel="noopener noreferrer" class="font-bold text-slate-800 text-xs flex-1 min-w-0">${displayedTitle}</a>`
+              : `<p class="font-bold text-slate-800 text-xs flex-1 min-w-0">${displayedTitle}</p>`;
             itemsHTML += `
               <div class="flex gap-2 items-start group">
                 <span class="font-bold text-slate-400 w-12 shrink-0 pt-0.5 text-xs">${item.time}</span>
                 <div class="flex-1 min-w-0 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-100 space-y-1 relative">
                   <div class="flex justify-between items-start gap-2">
-                    <p class="font-bold text-slate-800 text-xs flex-1 min-w-0">${item.title}</p>
+                    ${titleHTML}
                     <div class="flex items-center gap-3 shrink-0 ml-auto">
                       <button onclick="openEditTimelineModal(${dayIndex}, ${itemIndex})" aria-label="編輯行程" class="text-sky-600 hover:text-sky-800 text-[10px] p-0.5"><i class="fa-solid fa-pen"></i></button>
                       <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" aria-label="刪除行程" class="text-rose-400 hover:text-rose-600 text-[10px] p-0.5"><i class="fa-solid fa-trash-can"></i></button>
