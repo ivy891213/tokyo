@@ -1259,16 +1259,15 @@
         } else {
           d.items.forEach((item, itemIndex) => {
             itemsHTML += `
-              <div class="flex gap-2 items-start group timeline-sort-row" data-day="${dayIndex}" data-index="${itemIndex}">
-                <button type="button" class="timeline-drag-handle text-slate-400 px-1 pt-1 touch-none cursor-grab" aria-label="拖曳調整順序" title="長按拖曳排序"><i class="fa-solid fa-grip-vertical"></i></button>
-                <span class="font-bold text-slate-400 w-10 pt-0.5 text-xs">${item.time}</span>
-                <div class="flex-1 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-100 space-y-1 relative">
-                  <div class="flex justify-between items-start">
-                    <p class="font-bold text-slate-800 text-xs">${item.title}</p>
-                    <button onclick="openEditTimelineModal(${dayIndex}, ${itemIndex})" aria-label="編輯行程" class="text-sky-600 hover:text-sky-800 text-[10px] px-2"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" class="text-rose-400 hover:text-rose-600 text-[10px] pl-2">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
+              <div class="flex gap-2 items-start group">
+                <span class="font-bold text-slate-400 w-12 shrink-0 pt-0.5 text-xs">${item.time}</span>
+                <div class="flex-1 min-w-0 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-100 space-y-1 relative">
+                  <div class="flex justify-between items-start gap-2">
+                    <p class="font-bold text-slate-800 text-xs flex-1 min-w-0">${item.title}</p>
+                    <div class="flex items-center gap-3 shrink-0 ml-auto">
+                      <button onclick="openEditTimelineModal(${dayIndex}, ${itemIndex})" aria-label="編輯行程" class="text-sky-600 hover:text-sky-800 text-xs p-1"><i class="fa-solid fa-pen"></i></button>
+                      <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" aria-label="刪除行程" class="text-rose-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
                   </div>
                   ${item.desc ? `<p class="text-[10px] text-slate-500">${item.desc}</p>` : ''}
                   ${item.cost ? `<span class="inline-block bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-200/60 mt-1"><i class="fa-solid fa-train text-[8px] mr-1"></i>交通車資 ¥${item.cost}</span>` : ''}
@@ -1281,7 +1280,7 @@
         card.innerHTML = `
           <div class="border-b pb-2 flex justify-between items-center">
             <div>
-              <p class="text-[10px] font-bold text-[#008BB0]">DAY ${d.day < 10 ? '0' + d.day : d.day} • ${d.date}</p>
+              <p class="text-sm font-bold text-[#008BB0]">DAY ${d.day < 10 ? '0' + d.day : d.day} • ${d.date}</p>
             </div>
             <button onclick="openAddTimelineModal(${dayIndex})" class="text-[10px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-xl transition">
               <i class="fa-solid fa-plus mr-0.5"></i> 新增行程
@@ -1295,7 +1294,6 @@
       });
 
       calculateTransportExpenses();
-      setupTimelineDragging();
     }
 
     function openEditTimelineModal(dayIndex, itemIndex) {
@@ -1310,49 +1308,6 @@
       document.getElementById('input-step-cost').value = item.cost || 0;
       updateModalUI();
       document.getElementById('item-modal').classList.remove('hidden');
-    }
-
-    function setupTimelineDragging() {
-      document.querySelectorAll('.timeline-drag-handle').forEach(handle => {
-        handle.addEventListener('pointerdown', event => {
-          if (event.button !== 0 && event.pointerType === 'mouse') return;
-          const row = handle.closest('.timeline-sort-row');
-          const parent = row.parentElement;
-          const dayIndex = Number(row.dataset.day);
-          const fromIndex = Number(row.dataset.index);
-          const startY = event.clientY;
-          let dragging = false;
-          handle.setPointerCapture(event.pointerId);
-          const move = e => {
-            if (!dragging && Math.abs(e.clientY - startY) < 6) return;
-            dragging = true;
-            row.style.opacity = '.55';
-            const siblings = [...parent.querySelectorAll('.timeline-sort-row')];
-            const target = siblings.find(el => el !== row && e.clientY >= el.getBoundingClientRect().top && e.clientY <= el.getBoundingClientRect().bottom);
-            if (target) {
-              const mid = target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
-              parent.insertBefore(row, e.clientY < mid ? target : target.nextSibling);
-            }
-          };
-          const end = () => {
-            handle.removeEventListener('pointermove', move);
-            handle.removeEventListener('pointerup', end);
-            handle.removeEventListener('pointercancel', end);
-            row.style.opacity = '';
-            if (!dragging) return;
-            const newIndex = [...parent.querySelectorAll('.timeline-sort-row')].indexOf(row);
-            if (newIndex === fromIndex || newIndex < 0) return;
-            const items = window.itineraryData[dayIndex].items;
-            const [moved] = items.splice(fromIndex, 1);
-            items.splice(newIndex, 0, moved);
-            window.saveToFirebase().catch(() => alert('排序未能儲存到雲端，請檢查連線'));
-            renderTimeline();
-          };
-          handle.addEventListener('pointermove', move);
-          handle.addEventListener('pointerup', end);
-          handle.addEventListener('pointercancel', end);
-        });
-      });
     }
 
     function openAddTimelineModal(dayIndex) {
@@ -1437,6 +1392,10 @@
           window.itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
         }
         
+        // 每次新增或修改時間後，依時間自動排序（相同時間維持原本順序）
+        window.itineraryData[currentModalDayIndex].items.sort((a, b) =>
+          (a.time || '').localeCompare(b.time || '')
+        );
         window.saveToFirebase().catch(() => alert("行程未能儲存到雲端，請檢查連線"));
         renderTimeline();
         closeItemModal();
