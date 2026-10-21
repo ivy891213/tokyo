@@ -1244,11 +1244,12 @@
       if (totalElem) totalElem.innerText = totalCost.toLocaleString();
     }
 
-    // 僅讀取既有地圖連結，不更動 Firebase 資料；名稱不明確時不建立連結。
+    // 僅讀取地圖連結；移除行程描述後保守比對，分店不明確時不連結。
     function findTimelineMapLink(title) {
       const normalize = value => String(value || '').toLowerCase()
-        .replace(/[樂楽]/g, '楽').replace(/[臺]/g, '台')
+        .replace(/[樂楽]/g, '楽').replace(/臺/g, '台')
         .replace(/^(?:(?:早餐|午餐|晚餐|宵夜|早午餐|下午茶|前往|參觀|逛逛|抵達|去|到)\s*)+/g, '')
+        .replace(/(?:(?:逛逛|參觀|散步|拍照|吃飯|用餐)\s*)+$/g, '')
         .replace(/[^\p{L}\p{N}]/gu, '');
       const cleanTitle = normalize(title);
       if (cleanTitle.length < 3) return null;
@@ -1260,13 +1261,13 @@
         if (cleanTitle === p.name) score = 100;
         else if (cleanTitle.includes(p.name) || p.name.includes(cleanTitle)) {
           const shorter = Math.min(cleanTitle.length, p.name.length);
-          if (shorter >= 4) score = 80 + 15 * shorter / Math.max(cleanTitle.length, p.name.length);
+          if (shorter >= 3) score = 80 + 15 * shorter / Math.max(cleanTitle.length, p.name.length);
         }
         return { ...p, score };
       }).filter(p => p.score >= 80).sort((a,b) => b.score-a.score);
       if (!scored.length) return null;
-      // 同名不同分店或多個候選地點時一律不連結。
       const best = scored[0];
+      // 任何其他不同網址的候選地點均視為可能有分店或歧義。
       if (scored.some(p => p !== best && p.url !== best.url && p.score >= best.score - 15)) return null;
       return best.url;
     }
