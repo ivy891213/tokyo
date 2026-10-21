@@ -1265,8 +1265,8 @@
                   <div class="flex justify-between items-start gap-2">
                     <p class="font-bold text-slate-800 text-xs flex-1 min-w-0">${item.title}</p>
                     <div class="flex items-center gap-3 shrink-0 ml-auto">
-                      <button onclick="openEditTimelineModal(${dayIndex}, ${itemIndex})" aria-label="編輯行程" class="text-sky-600 hover:text-sky-800 text-xs p-1"><i class="fa-solid fa-pen"></i></button>
-                      <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" aria-label="刪除行程" class="text-rose-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                      <button onclick="openEditTimelineModal(${dayIndex}, ${itemIndex})" aria-label="編輯行程" class="text-sky-600 hover:text-sky-800 text-[10px] p-0.5"><i class="fa-solid fa-pen"></i></button>
+                      <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" aria-label="刪除行程" class="text-rose-400 hover:text-rose-600 text-[10px] p-0.5"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                   </div>
                   ${item.desc ? `<p class="text-[10px] text-slate-500">${item.desc}</p>` : ''}
