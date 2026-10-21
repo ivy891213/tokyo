@@ -1154,6 +1154,7 @@
 
   <script>
     let currentModalDayIndex = null;
+    let currentEditItemIndex = null;
     let currentStep = 1;
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1258,11 +1259,13 @@
         } else {
           d.items.forEach((item, itemIndex) => {
             itemsHTML += `
-              <div class="flex gap-2 items-start group">
+              <div class="flex gap-2 items-start group timeline-sort-row" data-day="${dayIndex}" data-index="${itemIndex}">
+                <button type="button" class="timeline-drag-handle text-slate-400 px-1 pt-1 touch-none cursor-grab" aria-label="拖曳調整順序" title="長按拖曳排序"><i class="fa-solid fa-grip-vertical"></i></button>
                 <span class="font-bold text-slate-400 w-10 pt-0.5 text-xs">${item.time}</span>
                 <div class="flex-1 bg-[#F8FAFC] p-2.5 rounded-2xl border border-slate-100 space-y-1 relative">
                   <div class="flex justify-between items-start">
                     <p class="font-bold text-slate-800 text-xs">${item.title}</p>
+                    <button onclick="openEditTimelineModal(${dayIndex}, ${itemIndex})" aria-label="編輯行程" class="text-sky-600 hover:text-sky-800 text-[10px] px-2"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="deleteTimelineItem(${dayIndex}, ${itemIndex})" class="text-rose-400 hover:text-rose-600 text-[10px] pl-2">
                       <i class="fa-solid fa-trash-can"></i>
                     </button>
@@ -1292,9 +1295,68 @@
       });
 
       calculateTransportExpenses();
+      setupTimelineDragging();
+    }
+
+    function openEditTimelineModal(dayIndex, itemIndex) {
+      const item = window.itineraryData[dayIndex]?.items?.[itemIndex];
+      if (!item) return;
+      currentModalDayIndex = dayIndex;
+      currentEditItemIndex = itemIndex;
+      currentStep = 1;
+      document.getElementById('input-step-time').value = item.time || '12:00';
+      document.getElementById('input-step-title').value = item.title || '';
+      document.getElementById('input-step-desc').value = item.desc || '';
+      document.getElementById('input-step-cost').value = item.cost || 0;
+      updateModalUI();
+      document.getElementById('item-modal').classList.remove('hidden');
+    }
+
+    function setupTimelineDragging() {
+      document.querySelectorAll('.timeline-drag-handle').forEach(handle => {
+        handle.addEventListener('pointerdown', event => {
+          if (event.button !== 0 && event.pointerType === 'mouse') return;
+          const row = handle.closest('.timeline-sort-row');
+          const parent = row.parentElement;
+          const dayIndex = Number(row.dataset.day);
+          const fromIndex = Number(row.dataset.index);
+          const startY = event.clientY;
+          let dragging = false;
+          handle.setPointerCapture(event.pointerId);
+          const move = e => {
+            if (!dragging && Math.abs(e.clientY - startY) < 6) return;
+            dragging = true;
+            row.style.opacity = '.55';
+            const siblings = [...parent.querySelectorAll('.timeline-sort-row')];
+            const target = siblings.find(el => el !== row && e.clientY >= el.getBoundingClientRect().top && e.clientY <= el.getBoundingClientRect().bottom);
+            if (target) {
+              const mid = target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+              parent.insertBefore(row, e.clientY < mid ? target : target.nextSibling);
+            }
+          };
+          const end = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', end);
+            handle.removeEventListener('pointercancel', end);
+            row.style.opacity = '';
+            if (!dragging) return;
+            const newIndex = [...parent.querySelectorAll('.timeline-sort-row')].indexOf(row);
+            if (newIndex === fromIndex || newIndex < 0) return;
+            const items = window.itineraryData[dayIndex].items;
+            const [moved] = items.splice(fromIndex, 1);
+            items.splice(newIndex, 0, moved);
+            window.saveToFirebase().catch(() => alert('排序未能儲存到雲端，請檢查連線'));
+            renderTimeline();
+          };
+          handle.addEventListener('pointermove', move);
+          handle.addEventListener('pointerup', end);
+          handle.addEventListener('pointercancel', end);
+        });
+      });
     }
 
     function openAddTimelineModal(dayIndex) {
+      currentEditItemIndex = null;
       currentModalDayIndex = dayIndex;
       currentStep = 1;
       
@@ -1367,9 +1429,15 @@
         if (!window.itineraryData[currentModalDayIndex].items) {
           window.itineraryData[currentModalDayIndex].items = [];
         }
-        window.itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
+        if (currentEditItemIndex !== null) {
+          window.itineraryData[currentModalDayIndex].items[currentEditItemIndex] = {
+            ...window.itineraryData[currentModalDayIndex].items[currentEditItemIndex], time, title, desc, cost
+          };
+        } else {
+          window.itineraryData[currentModalDayIndex].items.push({ time, title, desc, cost });
+        }
         
-        window.saveToFirebase();
+        window.saveToFirebase().catch(() => alert("行程未能儲存到雲端，請檢查連線"));
         renderTimeline();
         closeItemModal();
         return;
