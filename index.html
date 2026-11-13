@@ -195,6 +195,16 @@
     });
 };
 
+    // 刪除單一自訂地點；僅接受目前 Firebase 已載入的 ID
+    window.deleteOneMapPlaceFromFirebase = async function(placeId) {
+      if (!isMapCloudLoaded) throw new Error('地圖資料尚未載入完成');
+      const place = window.mapPlaces.find(p => p.id === placeId);
+      if (!place || !/^place_[A-Za-z0-9_-]+$/.test(placeId)) {
+        throw new Error('找不到可刪除的自訂地點');
+      }
+      await remove(ref(db, 'tokyo_trip_data/mapPlaces/' + placeId));
+    };
+
     // ★ 新增單一地圖地點：只寫入自己的 Firebase key，不會覆蓋其他地點
     window.saveOneMapPlaceToFirebase = async function(place) {
       if (!db) throw new Error("Firebase Database 尚未初始化");
@@ -810,6 +820,9 @@
             }
 
             item.style.display = showItem ? 'flex' : 'none';
+            if (item.dataset.customPlace === 'true' && item.parentElement?.dataset.customPlaceWrapper === 'true') {
+                item.parentElement.style.display = showItem ? 'block' : 'none';
+            }
         });
 
         sections.forEach(section => {
@@ -921,17 +934,35 @@
     window.saveNewItem = saveNewItem;
     window.toggleAddBox = toggleAddBox;
 
-    // 從 Firebase 重新建立所有「使用者新增」地點的 DOM
-    function renderCustomMapPlaces() {
-      document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
+    // 刪除自訂地點（只刪 Firebase 單筆，不影響其他資料）
+    async function deleteCustomMapPlace(placeId) {
+      const place = (window.mapPlaces || []).find(p => p.id === placeId);
+      if (!place) return;
+      if (!confirm(`確定刪除「${place.name}」嗎？\n刪除後會同步到所有裝置。`)) return;
+      try {
+        await window.deleteOneMapPlaceFromFirebase(placeId);
+        showCloudStatus('✓ 地點已刪除並同步');
+        // Firebase onValue 會自動更新 window.mapPlaces 和畫面
+      } catch (error) {
+        console.error('刪除地點失敗:', error);
+        alert('刪除失敗：' + (error?.message || error));
+      }
+    }
 
+    // 從 Firebase 重新建立自訂地點；垃圾桶與超連結分開
+    function renderCustomMapPlaces() {
+      document.querySelectorAll('[data-custom-place-wrapper="true"]').forEach(el => el.remove());
+      document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
       if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
 
       window.mapPlaces.forEach(place => {
         if (!place || !place.name || !place.link) return;
-
         const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
         if (!targetSectionList) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative';
+        wrapper.dataset.customPlaceWrapper = 'true';
 
         const newItem = document.createElement('a');
         newItem.href = place.link;
@@ -940,32 +971,38 @@
         newItem.dataset.type = place.type || '';
         newItem.dataset.area = place.area || '';
         newItem.dataset.customPlace = 'true';
-        newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center transition';
+        newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 pr-12 rounded-xl border border-slate-100 flex justify-between items-center transition';
 
         const textWrap = document.createElement('div');
         textWrap.className = 'min-w-0 pr-2';
-
         const title = document.createElement('span');
         title.className = 'font-bold text-slate-800';
         title.textContent = place.name;
         textWrap.appendChild(title);
-
-        const noteText = (place.note || place.description || '').trim();
+        const noteText = String(place.note || place.description || '').trim();
         if (noteText) {
           const note = document.createElement('p');
           note.className = 'text-[10px] text-slate-400 font-medium mt-0.5';
           note.textContent = noteText;
           textWrap.appendChild(note);
         }
-
         const icon = document.createElement('i');
         icon.className = 'fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]';
-
         newItem.appendChild(textWrap);
         newItem.appendChild(icon);
-        targetSectionList.appendChild(newItem);
-      });
 
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.title = '刪除地點';
+        deleteButton.setAttribute('aria-label', `刪除 ${place.name}`);
+        deleteButton.className = 'absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 text-rose-400 hover:text-rose-600';
+        deleteButton.innerHTML = '<i class="fa-solid fa-trash-can text-xs"></i>';
+        deleteButton.addEventListener('click', () => deleteCustomMapPlace(place.id));
+
+        wrapper.appendChild(newItem);
+        wrapper.appendChild(deleteButton);
+        targetSectionList.appendChild(wrapper);
+      });
       applyMapFilters();
       if (typeof renderTimeline === 'function' && Array.isArray(window.itineraryData)) renderTimeline();
     }
