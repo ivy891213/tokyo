@@ -1186,12 +1186,40 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function scrollToDay(elementId) {
-      const target = document.getElementById(elementId);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+    
+function scrollToDay(elementId) {
+  const target = document.getElementById(elementId);
+
+  if (target) {
+    // 更新 D1～D16 按鈕的選取狀態
+    const bar = document.getElementById('timeline-days-bar');
+
+    if (bar) {
+      bar.querySelectorAll('button').forEach((button) => {
+        const selected =
+          button.getAttribute('onclick') === `scrollToDay('${elementId}')`;
+
+        // 選取：深灰底、白字
+        button.classList.toggle('bg-[#2C4A5A]', selected);
+        button.classList.toggle('text-white', selected);
+        button.classList.toggle('shadow-sm', selected);
+
+        // 未選取：白底、灰字
+        button.classList.toggle('bg-white', !selected);
+        button.classList.toggle('text-slate-600', !selected);
+        button.classList.toggle('border', !selected);
+        button.classList.toggle('border-slate-200', !selected);
+      });
     }
+
+    // 保留原本的跳轉功能
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+}
+
 
     function toggleTransportDetails() {
       const details = document.getElementById('transport-details-container');
