@@ -1290,13 +1290,27 @@ function scrollToDay(elementId) {
         ['平野', 'Yamanakakohirano'],
         ['白鳥浜', 'Shiratori Beach']
       ];
-      const places = [...document.querySelectorAll('#container-view-type a.map-item[href]')]
-        .map(el => ({
-          name: compact(el.querySelector('span')?.textContent || el.textContent),
-          area: el.dataset.area || '',
-          url: el.href
-        }))
-        .filter(p => p.name.length >= 3 && /^https?:/.test(p.url));
+      
+const staticPlaces = [...document.querySelectorAll(
+  '#container-view-type a.map-item[href]'
+)].map(el => ({
+  name: compact(el.querySelector('span')?.textContent || el.textContent),
+  area: el.dataset.area || '',
+  url: el.href
+}));
+
+const cloudPlaces = (window.mapPlaces || []).map(place => ({
+  name: compact(place.name),
+  area: place.area || '',
+  url: place.link
+}));
+
+const places = [...staticPlaces, ...cloudPlaces]
+  .filter(p => p.name.length >= 3 && /^https?:\/\//i.test(p.url))
+  .filter((p, index, arr) =>
+    arr.findIndex(x => x.name === p.name && x.url === p.url) === index
+  );
+
       // 同一天有多個富士山／山中湖特徵地點，才以富士山區作為同名候選的輔助依據。
       const fujiClues = /山中湖|富士山|平野之濱|長池親水公園|白鳥濱|白鳥浜|忍野八海|河口湖|山中湖平野/i;
       const isFujiDay = dayItems.filter(i => fujiClues.test(String(i.title || ''))).length >= 2;
