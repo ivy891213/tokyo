@@ -102,6 +102,9 @@
     const tripRef = ref(db, 'tokyo_trip_data');
     // 地圖自訂地點獨立存放，避免被其他資料寫入時覆蓋
     const mapPlacesRef = ref(db, 'tokyo_trip_data/mapPlaces');
+    const deletedBuiltInRef = ref(db, 'tokyo_trip_data/deletedBuiltInMapPlaces');
+    window.deletedBuiltInMapPlaces = {};
+    window.builtInMapDeletionLoaded = false;
 
     function showCloudStatus(message, ok = true) {
       let el = document.getElementById('cloud-sync-status');
@@ -173,6 +176,22 @@
       isMapCloudLoaded = false;
       showCloudStatus("地圖同步失敗：請檢查 Firebase Rules", false);
     });
+
+    // 跨裝置同步內建景點的刪除紀錄（不改寫 HTML 原始資料）
+    onValue(deletedBuiltInRef, snapshot => {
+      window.deletedBuiltInMapPlaces = snapshot.val() || {};
+      window.builtInMapDeletionLoaded = true;
+      if (typeof renderCustomMapPlaces === 'function') renderCustomMapPlaces();
+    }, error => {
+      console.error('內建地點刪除紀錄讀取失敗:', error);
+      showCloudStatus('無法讀取內建地點刪除紀錄', false);
+    });
+
+    window.deleteBuiltInMapPlaceFromFirebase = async function(key) {
+      if (!window.builtInMapDeletionLoaded) throw new Error('刪除紀錄尚未同步完成');
+      if (!/^builtin_[a-f0-9]{8}$/.test(key)) throw new Error('無效的內建景點 ID');
+      await set(ref(db, 'tokyo_trip_data/deletedBuiltInMapPlaces/' + key), true);
+    };
 
     // 儲存主要資料
    window.saveToFirebase = function() {
@@ -799,39 +818,24 @@
     }
 
     function applyMapFilters() {
-        const items = document.querySelectorAll('.map-item');
-        const sections = document.querySelectorAll('#container-view-type section');
-
-        const hasTypeFilter = currentFilter.type !== null;
-        const hasAreaFilter = currentFilter.area !== null;
-
-        items.forEach(item => {
-            const itemType = item.getAttribute('data-type');
-            const itemArea = item.getAttribute('data-area');
-
-            const matchType = !hasTypeFilter || (itemType === currentFilter.type);
-            const matchArea = !hasAreaFilter || (itemArea === currentFilter.area);
-
-            let showItem = false;
-            if (!hasTypeFilter && !hasAreaFilter) {
-                showItem = true;
-            } else {
-                showItem = matchType && matchArea;
-            }
-
-            item.style.display = showItem ? 'flex' : 'none';
-            if (item.dataset.customPlace === 'true' && item.parentElement?.dataset.customPlaceWrapper === 'true') {
-                item.parentElement.style.display = showItem ? 'block' : 'none';
-            }
-        });
-
-        sections.forEach(section => {
-            let hasVisible = false;
-            section.querySelectorAll('.map-item').forEach(el => {
-                if (el.style.display !== 'none') hasVisible = true;
-            });
-            section.style.display = hasVisible ? 'block' : 'none';
-        });
+      const items = document.querySelectorAll('#container-view-type .map-item');
+      const sections = document.querySelectorAll('#container-view-type section');
+      items.forEach(item => {
+        const matchType = !currentFilter.type || item.dataset.type === currentFilter.type;
+        const matchArea = !currentFilter.area || item.dataset.area === currentFilter.area;
+        const deleted = item.dataset.builtInKey &&
+          window.deletedBuiltInMapPlaces?.[item.dataset.builtInKey] === true;
+        if (item.dataset.builtInKey) item.dataset.builtinDeleted = deleted ? 'true' : 'false';
+        const show = matchType && matchArea && !deleted;
+        item.style.display = show ? 'flex' : 'none';
+        const wrapper = item.closest('[data-map-place-wrapper="true"]');
+        if (wrapper) wrapper.style.display = show ? 'block' : 'none';
+      });
+      sections.forEach(section => {
+        const visible = [...section.querySelectorAll('.map-item')]
+          .some(item => item.style.display !== 'none');
+        section.style.display = visible ? 'block' : 'none';
+      });
     }
 
     // 切換內嵌新增表單的展開與收合
@@ -949,8 +953,66 @@
       }
     }
 
-    // 從 Firebase 重新建立自訂地點；垃圾桶與超連結分開
+    // 穩定的內建景點 ID：根據 HTML 中原本的分類、名稱、網址產生
+    function builtInMapPlaceKey(item) {
+      const name = (item.querySelector('span')?.textContent || item.textContent || '').trim();
+      const source = [item.dataset.type || '', item.dataset.area || '', name,
+        item.getAttribute('href') || ''].join('|');
+      let hash = 2166136261;
+      for (let i = 0; i < source.length; i++) {
+        hash ^= source.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return 'builtin_' + (hash >>> 0).toString(16).padStart(8, '0');
+    }
+
+    function makeMapDeleteButton(onDelete, name) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.title = '刪除地點';
+      btn.setAttribute('aria-label', '刪除 ' + name);
+      btn.className = 'absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 text-rose-400 hover:text-rose-600';
+      btn.innerHTML = '<i class="fa-solid fa-trash-can text-xs"></i>';
+      btn.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        onDelete();
+      });
+      return btn;
+    }
+
+    async function deleteBuiltInMapPlace(item) {
+      const name = (item.querySelector('span')?.textContent || item.textContent || '').trim();
+      if (!confirm(`確定刪除「${name}」嗎？\n此地點將在所有裝置上隱藏。`)) return;
+      try {
+        await window.deleteBuiltInMapPlaceFromFirebase(item.dataset.builtInKey);
+        showCloudStatus('✓ 地點已刪除並同步');
+      } catch (error) {
+        console.error('刪除內建地點失敗:', error);
+        alert('刪除失敗：' + (error?.message || error));
+      }
+    }
+
+    // 原本 HTML 內建的地點只包一次，不破壞既有超連結
+    function prepareBuiltInMapPlaces() {
+      document.querySelectorAll('#container-view-type a.map-item:not([data-custom-place="true"])')
+        .forEach(item => {
+          if (item.dataset.builtInKey) return;
+          item.dataset.builtInKey = builtInMapPlaceKey(item);
+          const wrapper = document.createElement('div');
+          wrapper.className = 'relative';
+          wrapper.dataset.mapPlaceWrapper = 'true';
+          item.parentNode.insertBefore(wrapper, item);
+          wrapper.appendChild(item);
+          item.classList.add('pr-12');
+          wrapper.appendChild(makeMapDeleteButton(() => deleteBuiltInMapPlace(item),
+            (item.querySelector('span')?.textContent || item.textContent || '').trim()));
+        });
+    }
+
+    // 重建 Firebase 地點，同時保留所有內建景點的刪除按鈕
     function renderCustomMapPlaces() {
+      prepareBuiltInMapPlaces();
       document.querySelectorAll('[data-custom-place-wrapper="true"]').forEach(el => el.remove());
       document.querySelectorAll('[data-custom-place="true"]').forEach(el => el.remove());
       if (!Array.isArray(window.mapPlaces)) window.mapPlaces = [];
@@ -959,11 +1021,10 @@
         if (!place || !place.name || !place.link) return;
         const targetSectionList = document.querySelector(`#map-type-${place.type} .map-item-list`);
         if (!targetSectionList) return;
-
         const wrapper = document.createElement('div');
         wrapper.className = 'relative';
         wrapper.dataset.customPlaceWrapper = 'true';
-
+        wrapper.dataset.mapPlaceWrapper = 'true';
         const newItem = document.createElement('a');
         newItem.href = place.link;
         newItem.target = '_blank';
@@ -972,7 +1033,6 @@
         newItem.dataset.area = place.area || '';
         newItem.dataset.customPlace = 'true';
         newItem.className = 'map-item bg-[#F8FAFC] hover:bg-slate-100 p-2.5 pr-12 rounded-xl border border-slate-100 flex justify-between items-center transition';
-
         const textWrap = document.createElement('div');
         textWrap.className = 'min-w-0 pr-2';
         const title = document.createElement('span');
@@ -990,17 +1050,8 @@
         icon.className = 'fa-solid fa-arrow-up-right-from-square text-[9px] text-[#008BB0]';
         newItem.appendChild(textWrap);
         newItem.appendChild(icon);
-
-        const deleteButton = document.createElement('button');
-        deleteButton.type = 'button';
-        deleteButton.title = '刪除地點';
-        deleteButton.setAttribute('aria-label', `刪除 ${place.name}`);
-        deleteButton.className = 'absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 text-rose-400 hover:text-rose-600';
-        deleteButton.innerHTML = '<i class="fa-solid fa-trash-can text-xs"></i>';
-        deleteButton.addEventListener('click', () => deleteCustomMapPlace(place.id));
-
         wrapper.appendChild(newItem);
-        wrapper.appendChild(deleteButton);
+        wrapper.appendChild(makeMapDeleteButton(() => deleteCustomMapPlace(place.id), place.name));
         targetSectionList.appendChild(wrapper);
       });
       applyMapFilters();
@@ -1330,7 +1381,7 @@ function scrollToDay(elementId) {
       ];
       
 const staticPlaces = [...document.querySelectorAll(
-  '#container-view-type a.map-item[href]'
+  '#container-view-type a.map-item[href]:not([data-builtin-deleted="true"])'
 )].map(el => ({
   name: compact(el.querySelector('span')?.textContent || el.textContent),
   area: el.dataset.area || '',
