@@ -7,9 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -105,28 +102,6 @@
     // 地圖自訂地點獨立存放，避免被其他資料寫入時覆蓋
     const mapPlacesRef = ref(db, 'tokyo_trip_data/mapPlaces');
     const deletedBuiltInRef = ref(db, 'tokyo_trip_data/deletedBuiltInMapPlaces');
-    const mapPinRef = ref(db, 'tokyo_trip_data/mapPinCoordinates');
-    window.mapPinCoordinates = {};
-    window.mapPinCloudLoaded = false;
-    onValue(mapPinRef, snapshot => {
-      window.mapPinCoordinates = snapshot.val() || {};
-      window.mapPinCloudLoaded = true;
-      if (typeof window.renderInteractiveMap === 'function') window.renderInteractiveMap();
-    }, error => {
-      console.error('地圖標點讀取失敗:', error);
-      window.mapPinCloudLoaded = false;
-    });
-    window.saveMapPinToFirebase = async function(key, lat, lng) {
-      if (!window.mapPinCloudLoaded) throw new Error('標點資料尚未同步完成');
-      if (!/^(builtin_[a-f0-9]{8}|custom_[A-Za-z0-9_-]+)$/.test(key)) throw new Error('地點 ID 格式不正確');
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < 20 || lat > 47 || lng < 122 || lng > 154) throw new Error('座標不在日本範圍');
-      await set(ref(db, 'tokyo_trip_data/mapPinCoordinates/' + key), {lat, lng});
-    };
-    window.removeMapPinFromFirebase = async function(key) {
-      if (!window.mapPinCloudLoaded) throw new Error('標點資料尚未同步完成');
-      await remove(ref(db, 'tokyo_trip_data/mapPinCoordinates/' + key));
-    };
-
     window.deletedBuiltInMapPlaces = {};
     window.builtInMapDeletionLoaded = false;
 
@@ -1079,7 +1054,6 @@
         targetSectionList.appendChild(wrapper);
       });
       applyMapFilters();
-      if (typeof window.renderInteractiveMap === 'function') window.renderInteractiveMap();
       if (typeof renderTimeline === 'function' && Array.isArray(window.itineraryData)) renderTimeline();
     }
 
@@ -1095,28 +1069,6 @@
 
     
     <!-- MORE PAGE -->
-    <!-- 互動景點標點地圖：與現有景點清單共用資料 -->
-    <div id="page-pins" class="page-view hidden pb-24 space-y-3 px-3">
-      <div class="bg-white rounded-3xl p-4 shadow-sm mt-3">
-        <h2 class="font-black text-slate-800 text-lg"><i class="fa-solid fa-map-location-dot text-[#008BB0] mr-2"></i>我的景點地圖</h2>
-        <p class="text-xs text-slate-500 mt-1">選擇類別及地區，地圖立即顯示可從現有連結確定位置的景點；無法辨識座標的景點會列在下方供你補充。</p>
-        <div class="flex gap-2 mt-3">
-          <select id="pin-type-filter" onchange="renderInteractiveMap()" class="flex-1 min-w-0 bg-slate-50 rounded-lg p-2 text-xs border border-slate-200">
-            <option value="">所有類別</option><option value="sightseeing">景點／拍照</option><option value="food">美食／咖啡</option><option value="shopping">購物</option><option value="music">樂器</option><option value="other">其他</option>
-          </select>
-          <select id="pin-area-filter" onchange="renderInteractiveMap()" class="flex-1 min-w-0 bg-slate-50 rounded-lg p-2 text-xs border border-slate-200"><option value="">所有地區</option></select>
-        </div>
-        <p id="pin-auto-progress" class="text-[11px] text-slate-500 mt-2" aria-live="polite">不需 API Key 或手動建立標點；僅能從含精確座標的網址自動定位。</p>
-        <div id="tokyo-pin-map" class="rounded-xl mt-3 border border-slate-200" style="height:390px;z-index:0"></div>
-        <p id="pin-map-status" class="text-xs text-slate-500 mt-2" aria-live="polite">載入中…</p>
-        <div id="pin-map-selected" class="hidden mt-3 p-3 rounded-xl bg-sky-50 text-xs"></div>
-      </div>
-      <div class="bg-white rounded-3xl p-4 shadow-sm">
-        <h3 class="font-bold text-sm text-slate-800">景點清單與定位</h3>
-        <input id="pin-place-search" oninput="renderInteractiveMap()" placeholder="搜尋景點名稱…" class="w-full mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm" />
-        <div id="pin-place-list" class="space-y-2 mt-3"></div>
-      </div>
-    </div>
     <div id="page-more" class="page-view hidden space-y-4">
       <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
@@ -1283,10 +1235,6 @@
       <i class="fa-solid fa-map-location-dot text-base"></i>
       <span class="text-[9px] mt-0.5 font-bold">地圖</span>
     </button>
-    <button onclick="switchMainPage('pins')" id="nav-btn-pins" class="main-nav-btn flex flex-col items-center text-slate-400">
-      <i class="fa-solid fa-map-pin text-base"></i>
-      <span class="text-[9px] mt-0.5 font-bold">標點</span>
-    </button>
     <button onclick="switchMainPage('more')" id="nav-btn-more" class="main-nav-btn flex flex-col items-center text-slate-400">
       <i class="fa-solid fa-bars text-base"></i>
       <span class="text-[9px] mt-0.5 font-bold">更多</span>
@@ -1319,7 +1267,6 @@
       });
       document.getElementById('nav-btn-' + pageId).classList.replace('text-slate-400', 'text-[#2C4A5A]');
 
-      if (pageId === 'pins' && typeof window.openInteractiveMap === 'function') window.openInteractiveMap();
 
       if (pageId === 'map' && typeof renderCustomMapPlaces === 'function') {
         renderCustomMapPlaces();
@@ -1877,194 +1824,7 @@ const places = [...staticPlaces, ...cloudPlaces]
     }
   </script>
 
-  <script>
-    // 景點標點地圖：不更動既有的清單、Firebase 景點或每日行程。
-    let tokyoLeafletMap = null;
-    let tokyoPinLayer = null;
-    let tokyoPinSelection = null;
-    let tokyoPinPreview = null;
-    let tokyoMapClickHandler = null;
-    const tokyoPinColors = {sightseeing:'#0ea5e9',food:'#f59e0b',shopping:'#10b981',music:'#a855f7',other:'#64748b'};
 
-    function getInteractivePlaces() {
-      const builtins = [...document.querySelectorAll('#container-view-type a.map-item:not([data-custom-place="true"])')]
-        .filter(el => el.dataset.builtInKey && window.deletedBuiltInMapPlaces?.[el.dataset.builtInKey] !== true)
-        .map(el => ({key:el.dataset.builtInKey,name:(el.querySelector('span')?.textContent||el.textContent||'').trim(),
-          type:el.dataset.type||'other',area:el.dataset.area||'other',link:el.href}));
-      const customs = (window.mapPlaces||[]).filter(p=>p&&p.id&&p.name&&p.link).map(p=>({
-        key:'custom_'+p.id,name:p.name,type:p.type||'other',area:p.area||'other',link:p.link,note:p.note||p.description||''}));
-      return [...builtins,...customs];
-    }
-
-    function pinTypeMatches(type, filter) {
-      if (!filter) return true;
-      if (filter === 'other') return !['sightseeing','food','shopping','music'].includes(type);
-      return type === filter;
-    }
-    function pinAreaName(code) {
-      return ({shibuya:'澀谷',asakusa:'淺草',shinjuku:'新宿',akihabara:'秋葉原',ginza:'銀座',ochanomizu:'御茶之水',ikebukuro:'池袋',fuji:'富士山區',yokohama:'橫濱',kamakura:'鎌倉',other:'其他／住宿'})[code]||code;
-    }
-    function pinEl(tag, text, className) {
-      const e=document.createElement(tag); if(text!==undefined)e.textContent=text;
-      if(className)e.className=className;return e;
-    }
-    // 只接受網址中可識別為地點本身的座標。Google Maps 的 @lat,lng 是地圖視角中心，不能當作景點座標。
-    function googleLinkCoordinates(link) {
-      if (!link) return null;
-      let u;
-      try {u=new URL(link);} catch {return null;}
-      if (!/(^|\.)google\.[a-z.]+$/.test(u.hostname) && !/(^|\.)goo\.gl$/.test(u.hostname)) return null;
-      let decoded=link;
-      try {decoded=decodeURIComponent(link);}catch{}
-      const patterns=[
-        /!3d(-?\d{1,2}\.\d+)!4d(-?\d{2,3}\.\d+)/,
-        /[?&](?:q|query|ll)=(-?\d{1,2}\.\d+),(-?\d{2,3}\.\d+)/,
-        /[?&]destination=(-?\d{1,2}\.\d+)(?:%2C|,)(-?\d{2,3}\.\d+)/i
-      ];
-      for (const re of patterns) {
-        const m=decoded.match(re);
-        if(!m)continue;
-        const lat=Number(m[1]),lng=Number(m[2]);
-        if(lat>=20&&lat<=47&&lng>=122&&lng<=154)return {lat,lng};
-      }
-      return null;
-    }
-    const pendingAutoPinSaves=new Set();
-    function pinPointFor(place) {
-      const saved=window.mapPinCoordinates?.[place.key];
-      if(saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng)))return {lat:Number(saved.lat),lng:Number(saved.lng)};
-      const parsed=googleLinkCoordinates(place.link);
-      if(parsed && window.mapPinCloudLoaded && !pendingAutoPinSaves.has(place.key) && typeof window.saveMapPinToFirebase==='function') {
-        pendingAutoPinSaves.add(place.key);
-        window.saveMapPinToFirebase(place.key,parsed.lat,parsed.lng)
-          .catch(err=>console.warn('座標同步失敗，仍可於本機地圖顯示：',place.name,err))
-          .finally(()=>pendingAutoPinSaves.delete(place.key));
-      }
-      return parsed;
-    }
-
-    function openInteractiveMap() {
-      if (!window.L) {document.getElementById('pin-map-status').textContent='地圖元件載入失敗，請檢查網路連線。';return;}
-      if (!tokyoLeafletMap) {
-        tokyoLeafletMap=L.map('tokyo-pin-map',{scrollWheelZoom:false}).setView([35.6812,139.7671],10);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-          attribution:'&copy; OpenStreetMap contributors',maxZoom:19
-        }).addTo(tokyoLeafletMap);
-        tokyoPinLayer=L.layerGroup().addTo(tokyoLeafletMap);
-      }
-      setTimeout(()=>tokyoLeafletMap.invalidateSize(),80);
-      renderInteractiveMap();
-    }
-    window.openInteractiveMap=openInteractiveMap;
-
-    function renderInteractiveMap() {
-      const list=document.getElementById('pin-place-list'); if(!list)return;
-      if (!tokyoLeafletMap) {if(!document.getElementById('page-pins')?.classList.contains('hidden'))openInteractiveMap();return;}
-      const all=getInteractivePlaces();
-      const areaSelect=document.getElementById('pin-area-filter');
-      const areaValue=areaSelect.value;
-      const areas=[...new Set(all.map(p=>p.area))].sort();
-      areaSelect.replaceChildren(new Option('所有地區',''),...areas.map(a=>new Option(pinAreaName(a),a)));
-      areaSelect.value=areas.includes(areaValue)?areaValue:'';
-      const type=document.getElementById('pin-type-filter').value;
-      const area=areaSelect.value;
-      const search=document.getElementById('pin-place-search').value.trim().toLowerCase();
-      const filtered=all.filter(p=>pinTypeMatches(p.type,type)&&(!area||p.area===area)&&(!search||p.name.toLowerCase().includes(search)));
-      tokyoPinLayer.clearLayers();list.replaceChildren();
-      let positioned=0;
-      filtered.forEach(p=>{
-        const point=pinPointFor(p);
-        const valid=!!point;
-        if(valid){
-          positioned++;
-          const color=tokyoPinColors[p.type]||tokyoPinColors.other;
-          const marker=L.circleMarker([Number(point.lat),Number(point.lng)],{radius:8,color:'#fff',weight:2,fillColor:color,fillOpacity:.95});
-          marker.on('click',()=>selectInteractivePlace(p));
-          marker.addTo(tokyoPinLayer).bindTooltip(p.name);
-        }
-        const row=pinEl('div',undefined,'flex items-center gap-2 bg-slate-50 rounded-xl p-2');
-        const name=pinEl('span',p.name,'flex-1 min-w-0 text-xs font-bold text-slate-700');
-        const status=pinEl('span',valid?'已定位':'待補位置','text-[10px] '+(valid?'text-emerald-600':'text-slate-400'));
-        const button=pinEl('button',valid?'查看／修改':'定位','text-xs font-bold text-[#008BB0] px-2 py-1 bg-white rounded-lg border border-slate-200');
-        button.type='button';button.onclick=()=>selectInteractivePlace(p);
-        row.append(name,status,button);list.appendChild(row);
-      });
-      document.getElementById('pin-map-status').textContent=`符合篩選 ${filtered.length} 個景點・地圖標點 ${positioned} 個・待補座標 ${filtered.length-positioned} 個。選項變更會立即更新標點。`;
-      const bounds=tokyoPinLayer.getBounds?.();
-      if(positioned && bounds?.isValid()) tokyoLeafletMap.fitBounds(bounds.pad(0.15),{maxZoom:14,animate:false});
-    }
-    window.renderInteractiveMap=renderInteractiveMap;
-
-    function selectInteractivePlace(place) {
-      tokyoPinSelection=place;
-      const panel=document.getElementById('pin-map-selected');panel.replaceChildren();panel.classList.remove('hidden');
-      panel.appendChild(pinEl('div',place.name,'font-bold text-slate-800 mb-2'));
-      if(place.note)panel.appendChild(pinEl('p',place.note,'text-slate-500 mb-2'));
-      const link=pinEl('a','Google Maps 導航 ↗','text-[#008BB0] underline inline-block mb-2');
-      link.href=place.link;link.target='_blank';link.rel='noopener noreferrer';panel.appendChild(link);
-      const help=pinEl('p','先搜尋位置，或直接點地圖指定標點位置；確認正確後再儲存。','text-slate-600 mb-2');panel.appendChild(help);
-      const searchRow=pinEl('div',undefined,'flex gap-2 mb-2');
-      const input=pinEl('input',undefined,'flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-2 text-xs');
-      input.value=place.name;input.setAttribute('aria-label','地點搜尋名稱');
-      const searchButton=pinEl('button','搜尋位置','bg-[#008BB0] text-white rounded-lg px-3 py-2 text-xs font-bold');
-      searchRow.append(input,searchButton);panel.appendChild(searchRow);
-      const msg=pinEl('p','','text-xs text-slate-500 mb-2');panel.appendChild(msg);
-      const saveButton=pinEl('button','儲存這個標點','bg-emerald-600 text-white rounded-lg px-3 py-2 text-xs font-bold mr-2');
-      saveButton.disabled=true;saveButton.classList.add('opacity-50');panel.appendChild(saveButton);
-      const existing=pinPointFor(place);
-      const removeButton=pinEl('button','移除標點','bg-white border border-slate-200 text-rose-500 rounded-lg px-3 py-2 text-xs font-bold');
-      if(existing)panel.appendChild(removeButton);
-      let candidate=null;
-      if(tokyoPinPreview){tokyoLeafletMap.removeLayer(tokyoPinPreview);tokyoPinPreview=null;}
-      if(tokyoMapClickHandler)tokyoLeafletMap.off('click',tokyoMapClickHandler);
-      const propose=(lat,lng)=>{
-        candidate={lat,lng};
-        if(tokyoPinPreview)tokyoLeafletMap.removeLayer(tokyoPinPreview);
-        tokyoPinPreview=L.marker([lat,lng],{draggable:true}).addTo(tokyoLeafletMap);
-        tokyoPinPreview.on('dragend',()=>{const ll=tokyoPinPreview.getLatLng();candidate={lat:ll.lat,lng:ll.lng};});
-        saveButton.disabled=false;saveButton.classList.remove('opacity-50');
-        msg.textContent='請確認地圖上的位置，必要時拖動標點微調，再按儲存。';
-        tokyoLeafletMap.setView([lat,lng],Math.max(tokyoLeafletMap.getZoom(),14));
-      };
-      tokyoMapClickHandler=e=>propose(e.latlng.lat,e.latlng.lng);
-      tokyoLeafletMap.on('click',tokyoMapClickHandler);
-      if(existing)tokyoLeafletMap.setView([existing.lat,existing.lng],15);
-      searchButton.onclick=async()=>{
-        const q=input.value.trim();if(!q)return;
-        searchButton.disabled=true;msg.textContent='搜尋中…';
-        try {
-          const res=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=3&countrycodes=jp&q='+encodeURIComponent(q),{headers:{'Accept-Language':'zh-TW'}});
-          if(!res.ok)throw new Error('搜尋服務暫時無法使用');
-          const results=await res.json();
-          if(tokyoPinSelection?.key!==place.key)return;
-          if(!results.length){msg.textContent='找不到位置，請改用日文／英文名稱搜尋，或直接在地圖上點選。';return;}
-          msg.replaceChildren(pinEl('span','請選擇搜尋結果（不會自動儲存）：','block mb-1'));
-          results.forEach(result=>{
-            const b=pinEl('button',result.display_name,'block w-full text-left bg-white border border-slate-200 rounded-lg p-2 mb-1 text-[11px]');
-            b.onclick=()=>propose(Number(result.lat),Number(result.lon));msg.appendChild(b);
-          });
-        }catch(err){msg.textContent='搜尋失敗：'+err.message+'。可直接點地圖指定位置。';}
-        finally{searchButton.disabled=false;}
-      };
-      saveButton.onclick=async()=>{
-        if(!candidate)return;
-        const ll=tokyoPinPreview?.getLatLng();if(ll)candidate={lat:ll.lat,lng:ll.lng};
-        saveButton.disabled=true;
-        try{
-          await window.saveMapPinToFirebase(place.key,candidate.lat,candidate.lng);
-          msg.textContent='✓ 已儲存並同步到 Firebase';
-          if(tokyoPinPreview){tokyoLeafletMap.removeLayer(tokyoPinPreview);tokyoPinPreview=null;}
-          renderInteractiveMap();
-        }catch(err){msg.textContent='儲存失敗：'+err.message;saveButton.disabled=false;}
-      };
-      removeButton.onclick=async()=>{
-        if(!confirm('確定移除「'+place.name+'」的地圖標點嗎？景點清單仍會保留。'))return;
-        try{await window.removeMapPinFromFirebase(place.key);msg.textContent='已移除標點';renderInteractiveMap();}
-        catch(err){msg.textContent='移除失敗：'+err.message;}
-      };
-      panel.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-  </script>
 
 </body>
 </html>
