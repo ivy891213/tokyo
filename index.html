@@ -1106,6 +1106,17 @@
           </select>
           <select id="pin-area-filter" onchange="renderInteractiveMap()" class="flex-1 min-w-0 bg-slate-50 rounded-lg p-2 text-xs border border-slate-200"><option value="">所有地區</option></select>
         </div>
+        <div class="mt-3 rounded-xl bg-sky-50 p-3 space-y-2">
+          <p class="text-xs font-bold text-slate-700">自動建立景點標點</p>
+          <p class="text-[11px] text-slate-600">先從 Google Maps 連結讀取座標；只有名稱的景點，可使用 Geoapify 地點搜尋。模糊或同名分店會保留給你確認。</p>
+          <input id="pin-geocode-key" type="password" autocomplete="off" placeholder="Geoapify API Key（名稱自動搜尋需要）" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs" />
+          <div class="flex gap-2 flex-wrap">
+            <button type="button" onclick="autoPinFromGoogleLinks()" class="bg-[#008BB0] text-white rounded-lg px-3 py-2 text-xs font-bold">從 Google Maps 連結建立標點</button>
+            <button type="button" id="pin-auto-search-button" onclick="autoSearchPinNames()" class="bg-emerald-600 text-white rounded-lg px-3 py-2 text-xs font-bold">自動搜尋尚未定位景點</button>
+          </div>
+          <p id="pin-auto-progress" class="text-[11px] text-slate-600" aria-live="polite"></p>
+          <p class="text-[11px] text-slate-500">API Key 請設定網域限制；不會寫入 Firebase。搜尋結果有疑義時請在下方景點清單手動確認。</p>
+        </div>
         <div id="tokyo-pin-map" class="rounded-xl mt-3 border border-slate-200" style="height:390px;z-index:0"></div>
         <p id="pin-map-status" class="text-xs text-slate-500 mt-2" aria-live="polite">載入中…</p>
         <div id="pin-map-selected" class="hidden mt-3 p-3 rounded-xl bg-sky-50 text-xs"></div>
@@ -1907,6 +1918,84 @@ const places = [...staticPlaces, ...cloudPlaces]
       const e=document.createElement(tag); if(text!==undefined)e.textContent=text;
       if(className)e.className=className;return e;
     }
+    // 從 Google Maps 分享網址擷取明確座標，不猜測名稱或分店。
+    function googleLinkCoordinates(link) {
+      if (!link) return null;
+      let u;
+      try { u = new URL(link); } catch { return null; }
+      if (!/(^|\.)google\.[a-z.]+$/.test(u.hostname) && !/(^|\.)goo\.gl$/.test(u.hostname)) return null;
+      const decoded = decodeURIComponent(link);
+      const patterns = [/@(-?\d{1,2}\.\d+),(-?\d{2,3}\.\d+)/, /!3d(-?\d{1,2}\.\d+)!4d(-?\d{2,3}\.\d+)/, /[?&](?:q|query|ll)=(-?\d{1,2}\.\d+),(-?\d{2,3}\.\d+)/];
+      for (const re of patterns) {
+        const m = decoded.match(re);
+        if (m) {
+          const lat=Number(m[1]),lng=Number(m[2]);
+          if(lat>=20&&lat<=47&&lng>=122&&lng<=154) return {lat,lng};
+        }
+      }
+      return null;
+    }
+    async function autoPinFromGoogleLinks() {
+      const progress=document.getElementById('pin-auto-progress');
+      if (!window.mapPinCloudLoaded) {progress.textContent='Firebase 標點尚未同步，請稍候。';return;}
+      let count=0;
+      for (const p of getInteractivePlaces()) {
+        if(window.mapPinCoordinates?.[p.key])continue;
+        const point=googleLinkCoordinates(p.link);
+        if(!point)continue;
+        try {await window.saveMapPinToFirebase(p.key,point.lat,point.lng);count++;}
+        catch(err){progress.textContent='儲存失敗：'+err.message;return;}
+      }
+      progress.textContent=`已從 Google Maps 網址建立 ${count} 個標點。部分網址只有搜尋文字或短連結，仍需名稱搜尋。`;
+      renderInteractiveMap();
+    }
+    window.autoPinFromGoogleLinks=autoPinFromGoogleLinks;
+
+    // 名稱搜尋採使用者明確觸發，透過 Geoapify API（非公共 Nominatim 批次查詢）。
+    async function autoSearchPinNames() {
+      const progress=document.getElementById('pin-auto-progress');
+      const button=document.getElementById('pin-auto-search-button');
+      const apiKey=document.getElementById('pin-geocode-key').value.trim();
+      if(!apiKey){progress.textContent='請先輸入 Geoapify API Key 才能依名稱自動搜尋。';return;}
+      if(!window.mapPinCloudLoaded){progress.textContent='Firebase 尚未同步，請稍候。';return;}
+      const pending=getInteractivePlaces().filter(p=>!window.mapPinCoordinates?.[p.key]);
+      if(!pending.length){progress.textContent='所有景點都已有標點。';return;}
+      if(!confirm(`將搜尋 ${pending.length} 個尚未定位的景點。只有可信度高且沒有分店歧義的結果會自動儲存，其餘保留手動確認。繼續嗎？`))return;
+      button.disabled=true;button.classList.add('opacity-50');
+      let saved=0,review=0,failed=0;
+      try {
+        for(let i=0;i<pending.length;i++) {
+          const p=pending[i];
+          progress.textContent=`搜尋中 ${i+1}/${pending.length}：${p.name}｜已儲存 ${saved}，待確認 ${review}`;
+          try {
+            const query=p.name+' Japan';
+            const url='https://api.geoapify.com/v1/geocode/search?text='+encodeURIComponent(query)+'&filter=countrycode:jp&limit=3&format=json&apiKey='+encodeURIComponent(apiKey);
+            const response=await fetch(url);
+            if(!response.ok)throw new Error('地點搜尋 API HTTP '+response.status);
+            const data=await response.json();
+            const results=data.results||[];
+            const norm=t=>String(t||'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+            const target=norm(p.name);
+            const best=results[0];
+            const bestName=norm(best?.name||'');
+            const second=results[1];
+            const ambiguous=second && Number(second.rank?.confidence||0)>=Number(best?.rank?.confidence||0)-0.08;
+            const exact=target.length>=4 && bestName && (target===bestName || (bestName.length>=4 && target.includes(bestName)));
+            const confidence=Number(best?.rank?.confidence||0);
+            if(best&&exact&&confidence>=0.9&&!ambiguous&&Number.isFinite(best.lat)&&Number.isFinite(best.lon)) {
+              await window.saveMapPinToFirebase(p.key,Number(best.lat),Number(best.lon));saved++;
+            } else review++;
+          }catch(err){console.warn('標點搜尋未完成:',p.name,err);failed++;}
+          await new Promise(resolve=>setTimeout(resolve,350));
+        }
+      }finally{
+        button.disabled=false;button.classList.remove('opacity-50');
+        progress.textContent=`完成：新增 ${saved} 個標點，${review} 個需要確認，${failed} 個搜尋失敗。可在下方逐筆定位。`;
+        renderInteractiveMap();
+      }
+    }
+    window.autoSearchPinNames=autoSearchPinNames;
+
     function openInteractiveMap() {
       if (!window.L) {document.getElementById('pin-map-status').textContent='地圖元件載入失敗，請檢查網路連線。';return;}
       if (!tokyoLeafletMap) {
